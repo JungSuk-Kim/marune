@@ -35,7 +35,9 @@ export async function onRequestGet({ env, request }){
   const u = new URL(request.url);
   const page = Math.max(1, Math.min(500, parseInt(u.searchParams.get("page"), 10) || 1));
   const size = Math.max(1, Math.min(30, parseInt(u.searchParams.get("size"), 10) || 15));
-  const qs = "per_page=" + size + "&page=" + page + "&field=title%2Ccontents&keyword=&type=all&order_by=reg_date&board_number=";
+  /* SOOP은 한 번에 최소 10개를 주므로, 적게 요청하면 10개를 받아 앞에서 자름 */
+  const per = Math.max(10, size);
+  const qs = "per_page=" + per + "&page=" + page + "&field=title%2Ccontents&keyword=&type=all&order_by=reg_date&board_number=";
   for(const host of HOSTS){
     try{
       const r = await fetch(host + "/api/" + id + "/board/?" + qs, {
@@ -45,7 +47,7 @@ export async function onRequestGet({ env, request }){
       if(!r.ok) continue;
       const d = await r.json();
       /* 스트리머 본인이 쓴 글만 */
-      const items = (Array.isArray(d.data) ? d.data : []).filter(b => b && b.user_id === id).map(b => mapPost(b, id));
+      const items = (Array.isArray(d.data) ? d.data : []).filter(b => b && b.user_id === id).slice(0, size).map(b => mapPost(b, id));
       const meta = d.meta || {};
       return json({ ok: true, items, total: meta.total || items.length, page: meta.current_page || page, lastPage: meta.last_page || 1 }, 180);
     }catch(e){ /* 다음 주소 시도 */ }
