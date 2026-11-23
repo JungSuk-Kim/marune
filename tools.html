@@ -49,11 +49,11 @@
       <div class="tool-card t-draw">
         <div class="t-head"><h2>추첨</h2>
           <div class="seg" id="drawSeg" role="group" aria-label="뽑을 사람 수"><button type="button" data-n="1" aria-pressed="true">1명</button><button type="button" data-n="2">2명</button><button type="button" data-n="3">3명</button><button type="button" data-n="5">5명</button></div></div>
-        <div class="lotto" id="lottoStage"><canvas id="lotto" width="640" height="560" aria-label="추첨기"></canvas></div>
+        <div class="lotto" id="lottoStage"><canvas id="lotto" width="720" height="620" aria-label="추첨기"></canvas><div class="lotto-reveal" id="lottoReveal"></div></div>
         <div class="picked" id="drawResult" aria-live="polite"></div>
         <label class="mini-label" for="drawNames">참여자 <span id="drawInfo" class="sec-sub"></span></label>
-        <textarea class="field" id="drawNames" placeholder="닉네임을 한 줄에 하나씩 붙여 넣으세요. 같은 이름은 한 번만 계산해요."></textarea>
-        <button type="button" class="btn cherry big" id="drawBtn">뽑기</button>
+        <textarea class="field" id="drawNames" placeholder="닉네임을 한 줄에 하나씩 붙여 넣으세요. 적은 순서대로 1번, 2번… 공 번호가 붙어요."></textarea>
+        <button type="button" class="btn cherry big" id="drawBtn">추첨 시작</button>
       </div>
     </div>
     <div class="tool-panel" data-panel="dice" role="tabpanel" hidden>

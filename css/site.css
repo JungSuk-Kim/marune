@@ -514,9 +514,18 @@ a.post-row.soop-row:hover{background:#eaf7ef}
 @keyframes slotb{to{transform:translateY(-3px)}}
 .picked{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;min-height:0}
 .picked:empty{display:none}
-.picked span{background:radial-gradient(circle at 30% 25%,#fff 0 12%,var(--c,#f9b4cb) 45%);color:var(--ci,#8a2149);border-radius:999px;padding:8px 18px;font-weight:800;font-size:16px;animation:pop .3s;box-shadow:0 4px 10px rgba(42,35,64,.14),inset 0 -3px 0 rgba(0,0,0,.08)}
-.lotto{position:relative;border-radius:22px;background:radial-gradient(circle at 50% 38%,#fff 0,#fff3f8 45%,#f1eafb 100%);overflow:hidden}
-.lotto canvas{display:block;width:100%;height:auto;aspect-ratio:640/560}
+.picked span{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:5px 16px 5px 5px;font-weight:700;font-size:15px;animation:pop .3s;box-shadow:0 3px 8px rgba(42,35,64,.08)}
+.picked i{font-style:normal;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;color:var(--d);background:radial-gradient(circle,#fff 0 52%,transparent 54%),radial-gradient(circle at 32% 28%,#fff 0 6%,var(--c) 30%,var(--d) 100%)}
+.lotto{position:relative;border-radius:22px;overflow:hidden;background:radial-gradient(ellipse 60% 55% at 40% 48%,rgba(255,180,215,.28),transparent 70%),radial-gradient(ellipse at 50% 0,#4d3d78 0,#2c2445 55%,#1b1629 100%)}
+.lotto::after{content:"";position:absolute;left:0;right:0;bottom:0;height:16%;background:linear-gradient(180deg,transparent,rgba(0,0,0,.25));pointer-events:none}
+.lotto canvas{position:relative;z-index:1;display:block;width:100%;height:auto;aspect-ratio:720/620}
+.lotto-reveal{position:absolute;inset:0;z-index:2;display:grid;place-items:center;background:rgba(20,15,35,.45);opacity:0;pointer-events:none;transition:opacity .25s;cursor:pointer}
+.lotto-reveal.on{opacity:1;pointer-events:auto}
+.lr-card{width:100%;display:flex;flex-direction:column;align-items:center;gap:14px;transform:scale(.6);transition:transform .45s cubic-bezier(.2,1.5,.4,1)}
+.lotto-reveal.on .lr-card{transform:none}
+.lball{width:clamp(96px,22vw,140px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 32% 26%,#fff 0 6%,var(--c) 34%,var(--d) 100%);box-shadow:0 16px 40px rgba(0,0,0,.45),inset 0 -8px 18px rgba(0,0,0,.18)}
+.lball b{width:58%;aspect-ratio:1;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:clamp(30px,7vw,46px);font-weight:900;color:var(--d);letter-spacing:-.03em}
+.lr-name{background:#fff;color:var(--ink);border-radius:999px;padding:8px 26px;font-family:var(--font-display);font-size:clamp(24px,5vw,34px);font-weight:700;max-width:88%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;box-shadow:0 10px 30px rgba(0,0,0,.35)}
 .t-draw textarea.field{min-height:110px}
 
 /* 주사위 */
