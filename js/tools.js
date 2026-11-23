@@ -487,7 +487,7 @@
   const RANK = ["#ffc928", "#ff86ad", "#6cc3f5", "#9fd34a", "#c3a4f5", "#ffa45c"];
   const PAPER = ["#ffd9e6", "#fff0b3", "#d4f2e4", "#dfe9ff", "#ffe2cc", "#eadcff"];
   const LOSE = ["꽝", "꽝! 다음 기회에", "아쉽다, 꽝", "꽝… 한 번 더?", "꽝이에요"];
-  const DEF = { items: [{ name: "애교 한 번", count: 1 }, { name: "노래 신청권", count: 2 }, { name: "칭찬 한마디", count: 5 }], size: 50 };
+  const DEF = { items: [{ name: "애교 한 번", count: 1 }, { name: "노래 신청권", count: 2 }, { name: "칭찬 한마디", count: 3 }, { name: "닉네임 불러주기", count: 5 }], size: 50 };
   let st = store.get("tool-ppopgi", null), busy = false;
   const parse = text => text.split("\n").map(s => s.trim()).filter(Boolean).map(s => {
     const m = s.match(/^(.*?)\s*[xX×*]\s*(\d+)\s*$/);
@@ -500,7 +500,7 @@
     items.forEach((it, i) => { for(let k = 0; k < it.count; k++) prizes.push(i); });
     while(prizes.length < size) prizes.push(-1);
     for(let i = prizes.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [prizes[i], prizes[j]] = [prizes[j], prizes[i]]; }
-    st = { items, size, t: prizes.map(p => ({ p, o: 0, c: Math.floor(Math.random() * PAPER.length), r: Math.round((Math.random() - .5) * 8) })) };
+    st = { v: 2, items, size, t: prizes.map(p => ({ p, o: 0, c: Math.floor(Math.random() * PAPER.length), r: Math.round((Math.random() - .5) * 8) })) };
     save(); return true;
   }
   const save = () => store.set("tool-ppopgi", st);
@@ -553,7 +553,7 @@
     const sel = $("ppSize").querySelector('[aria-pressed="true"]'), size = sel ? Number(sel.dataset.n) : st.size;
     if(deal(items, size)){ $("ppCard").querySelector("details").open = false; $("ppOpen").classList.remove("on"); render(); toast("새 뽑기판을 깔았어요"); }
   });
-  if(!st || !st.t) deal(DEF.items, DEF.size);
+  if(!st || !st.t || st.v !== 2) deal(DEF.items, DEF.size);
   render();
   window.__pp = () => st;
 })();
