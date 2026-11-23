@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>체리 계단 | 마루네</title>
+<meta name="description" content="방향을 맞춰 계단을 끝까지 올라요.">
+<link rel="icon" href="../assets/p06.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/site.css">
+</head>
+<body data-page="play">
+<div id="site-header"></div>
+<main>
+<div class="page-head"><div class="wrap">
+    <div class="crumb"><a href="../index.html">홈</a><span>/</span><a href="../play.html">놀이터</a><span>/</span><span>체리 계단</span></div>
+    <h1>체리 계단</h1>
+    <p>방향을 맞춰 계단을 끝까지 올라요.</p>
+  </div></div>
+
+  <section class="band"><div class="wrap"><div class="game-shell">
+    <div class="panel">
+
+      <div class="panel-head"><h2 class="sec-title">체리 계단</h2>
+        <div class="hud"><span>오른 칸 <b class="num" id="score">0</b></span></div></div>
+      <div class="stage"><div class="timebar"><i id="timebar"></i></div>
+        <canvas class="stairs-canvas" id="cv" width="480" height="600" aria-label="계단 게임 화면"></canvas>
+        <div class="pad-row"><button type="button" class="btn light" id="turnBtn">방향 바꿔 오르기</button><button type="button" class="btn" id="goBtn">오르기</button></div>
+        <div class="overlay" id="overlay"><img class="pc" id="ovIcon" alt=""><h4 id="ovTitle">계단을 끝까지 올라요</h4>
+          <p id="ovText">다음 계단이 지금 방향이면 오르기, 반대쪽이면 방향 바꿔 오르기를 눌러요.</p>
+          <button type="button" class="btn cherry" id="startBtn">시작하기</button></div></div>
+      <p class="game-note"><span>내 최고 기록 <b class="num" id="best"></b></span><span>키보드: ← 방향 바꾸기 · → 오르기</span></p>
+    </div>
+    <p class="how"><b>하는 법</b> · 시간이 다 떨어지거나 계단이 없는 쪽으로 가면 끝나요. 오를 때마다 시간이 조금 채워져요.</p>
+    <p class="how"><a class="text-btn" href="../play.html">다른 게임 보기 <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a></p>
+  </div></div></section>
+</main>
+<div id="site-footer"></div>
+<script src="../data/site.js"></script>
+<script src="../data/content.js"></script>
+<script src="../js/site.js"></script>
+<script src="../js/games.js"></script>
+<script src="../js/game-stairs.js"></script>
+</body>
+</html>

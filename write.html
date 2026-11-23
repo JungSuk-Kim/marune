@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>글쓰기 | 마루네</title>
+<meta name="description" content="서로 존중하는 말로 써 주세요.">
+<link rel="icon" href="assets/p06.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body data-page="board" data-view="write">
+<div id="site-header"></div>
+<main>
+<div class="page-head"><div class="wrap">
+    <div class="crumb"><a href="index.html">홈</a><span>/</span><span>글쓰기</span></div>
+    <h1>글쓰기</h1>
+    <p>서로 존중하는 말로 써 주세요.</p>
+  </div></div>
+
+  <section class="band"><div class="wrap">
+    <p class="notice-banner" id="demoNote" hidden>체험 모드예요. 여기서 쓴 글은 이 기기에만 저장되고 다른 사람에게는 보이지 않아요.</p>
+    <div class="board-top"><a class="text-btn" href="board.html">← 목록으로</a><div class="auth-slot" id="authSlot"></div></div>
+    <div id="needLogin" hidden><p class="empty">글을 쓰려면 로그인이 필요해요.</p><p style="text-align:center"><button type="button" class="btn" id="loginHere">로그인</button></p></div>
+    <form id="writeForm" hidden>
+      <div class="form-row"><label for="cat">게시판</label><select class="field" id="cat" style="max-width:220px"></select></div>
+      <div class="form-row"><label for="title">제목</label><input class="field" id="title" maxlength="100" required></div>
+      <div class="form-row"><label for="body">내용</label><textarea class="field" id="body" maxlength="5000" required></textarea></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end"><a class="btn light" href="board.html">취소</a><button type="submit" class="btn cherry" id="submitBtn">등록</button></div>
+    </form>
+  </div></section>
+</main>
+<div id="site-footer"></div>
+<script src="data/site.js"></script>
+<script src="data/content.js"></script>
+<script src="js/site.js"></script>
+<script src="js/board-store.js"></script>
+<script src="js/board.js"></script>
+</body>
+</html>

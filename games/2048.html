@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>체리 2048 | 마루네</title>
+<meta name="description" content="같은 단계끼리 합쳐 황금 체리를 만들어요.">
+<link rel="icon" href="../assets/p06.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/site.css">
+</head>
+<body data-page="play">
+<div id="site-header"></div>
+<main>
+<div class="page-head"><div class="wrap">
+    <div class="crumb"><a href="../index.html">홈</a><span>/</span><a href="../play.html">놀이터</a><span>/</span><span>체리 2048</span></div>
+    <h1>체리 2048</h1>
+    <p>같은 단계끼리 합쳐 황금 체리를 만들어요.</p>
+  </div></div>
+
+  <section class="band"><div class="wrap"><div class="game-shell">
+    <div class="panel">
+
+      <div class="panel-head"><h2 class="sec-title">체리 2048</h2>
+        <div class="hud"><span>점수 <b class="num" id="score">0</b></span><button type="button" class="btn light" id="resetBtn" style="padding:5px 12px">새 게임</button></div></div>
+      <div class="stage"><div class="board" id="board"></div>
+        <div class="overlay" id="overlay" hidden><img class="pc" id="ovIcon" alt=""><h4 id="ovTitle"></h4>
+          <p id="ovText"></p><button type="button" class="btn cherry" id="againBtn">다시 하기</button></div></div>
+      <p class="game-note"><span>내 최고 기록 <b class="num" id="best"></b></span><span>가장 높은 단계 <b id="top">씨앗</b></span></p>
+    </div>
+    <p class="how"><b>하는 법</b> · 방향키나 화면 밀기로 모든 퍼스나콘을 한쪽으로 밀어요. 같은 단계 두 개가 만나면 다음 단계가 돼요.</p>
+    <p class="how"><a class="text-btn" href="../play.html">다른 게임 보기 <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a></p>
+  </div></div></section>
+</main>
+<div id="site-footer"></div>
+<script src="../data/site.js"></script>
+<script src="../data/content.js"></script>
+<script src="../js/site.js"></script>
+<script src="../js/games.js"></script>
+<script src="../js/game-2048.js"></script>
+</body>
+</html>

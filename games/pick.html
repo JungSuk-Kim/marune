@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>체리 따기 | 마루네</title>
+<meta name="description" content="30초 동안 튀어나오는 체리를 잡아요.">
+<link rel="icon" href="../assets/p06.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/site.css">
+</head>
+<body data-page="play">
+<div id="site-header"></div>
+<main>
+<div class="page-head"><div class="wrap">
+    <div class="crumb"><a href="../index.html">홈</a><span>/</span><a href="../play.html">놀이터</a><span>/</span><span>체리 따기</span></div>
+    <h1>체리 따기</h1>
+    <p>30초 동안 튀어나오는 체리를 잡아요.</p>
+  </div></div>
+
+  <section class="band"><div class="wrap"><div class="game-shell">
+    <div class="panel">
+
+      <div class="panel-head"><h2 class="sec-title">체리 따기</h2>
+        <div class="hud"><span>남은 시간 <b class="num" id="time">30</b>초</span><span>점수 <b class="num" id="score">0</b></span></div></div>
+      <div class="stage"><div class="pond" id="pond"></div>
+        <div class="overlay" id="overlay"><img class="pc" id="ovIcon" alt=""><h4 id="ovTitle">30초 동안 체리를 따요</h4>
+          <p id="ovText">빨간 체리는 1점, 반짝이는 황금 체리는 3점이에요.</p>
+          <button type="button" class="btn cherry" id="startBtn">시작하기</button></div></div>
+      <p class="game-note"><span>내 최고 기록 <b class="num" id="best"></b></span></p>
+    </div>
+    <p class="how"><b>하는 법</b> · 칸에서 올라오는 체리를 누르세요. 뒤로 갈수록 빨라져요.</p>
+    <p class="how"><a class="text-btn" href="../play.html">다른 게임 보기 <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a></p>
+  </div></div></section>
+</main>
+<div id="site-footer"></div>
+<script src="../data/site.js"></script>
+<script src="../data/content.js"></script>
+<script src="../js/site.js"></script>
+<script src="../js/games.js"></script>
+<script src="../js/game-pick.js"></script>
+</body>
+</html>
