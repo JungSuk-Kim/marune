@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>마루네 | 마루º 팬 커뮤니티</title>
-<meta name="description" content="마루º 팬 커뮤니티 마루네. 방송 일정, 공약, 시그, 자료실, 미니게임을 한곳에서.">
+<meta name="description" content="마루º 팬 커뮤니티 마루네. 방송 일정, 공약, 시그, 게시판, 미니게임을 한곳에서.">
 <link rel="icon" href="assets/p06.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,83 +17,55 @@
 <div class="hero" id="hero">
     <div class="hero-art" id="heroArt" role="img" aria-label="대표 사진"></div>
     <div class="wrap">
-      <span class="eyebrow"><span data-cfg="streamer"></span> 팬 커뮤니티</span>
+      <span class="live-pill" id="livePill"><span class="dot idle" id="liveDot"></span><span id="liveTitle"></span><span class="num" id="viewers" hidden></span></span>
+      <span id="liveSub" hidden></span>
       <h1 data-cfg="wordmark"></h1>
       <p data-cfg="tagline"></p>
       <div class="hero-actions">
-        <a class="btn light sq" href="board.html"><svg class="ico" aria-hidden="true"><use href="#i-chat"/></svg>게시판</a>
-        <a class="btn light sq" href="promise.html"><svg class="ico" aria-hidden="true"><use href="#i-flag"/></svg>공약현황</a>
-        <a class="btn light sq" href="play.html"><svg class="ico" aria-hidden="true"><use href="#i-game"/></svg>놀이터</a>
-        <button type="button" class="btn light sq" id="giftBtn" hidden><svg class="ico" aria-hidden="true"><use href="#i-gift"/></svg>선물 주소</button>
+        <a class="btn cherry" id="watchBtn" href="#" target="_blank" rel="noopener">방송국 가기<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a class="btn light" href="board.html">게시판</a>
+        <a class="btn light" href="promise.html">공약현황</a>
+        <button type="button" class="btn light" id="giftBtn" hidden><svg class="ico" aria-hidden="true"><use href="#i-gift"/></svg>선물 주소</button>
       </div>
     </div>
   </div>
 
-  <section class="band">
-    <div class="wrap">
-      <div class="sec-head"><h2 class="sec-title">LIVE</h2></div>
-      <div class="live-row">
-        <span class="dot idle" id="liveDot"></span>
-        <div class="live-text"><b id="liveTitle"></b><span id="liveSub"></span></div>
-        <span class="live-meta num" id="viewers" hidden></span>
-        <a class="btn light" id="watchBtn" href="#" target="_blank" rel="noopener">채널 바로가기<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-      </div>
-    </div>
-  </section>
+  <div class="wrap home-grid">
+    <section class="tile" aria-labelledby="h-board">
+      <div class="tile-head"><h2 id="h-board"><span class="ic pink"><svg class="ico" aria-hidden="true"><use href="#i-chat"/></svg></span>게시판 최근 글</h2><a class="text-btn" href="board.html">전체보기 <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
+      <div class="mini-list" id="boardList"></div>
+    </section>
 
-  <section class="band">
-    <div class="wrap two" id="newsGrid">
-      <div class="panel" id="soopPanel" hidden>
-        <div class="panel-head"><h2 class="sec-title"><svg class="ico" aria-hidden="true"><use href="#i-mega"/></svg>방송국 최신 글 <span class="sec-sub">SOOP에서 자동으로 가져와요</span></h2></div>
-        <div class="panel-body mini-list" id="soopList"></div>
-      </div>
-      <div class="panel">
-        <div class="panel-head"><h2 class="sec-title"><svg class="ico" aria-hidden="true"><use href="#i-chat"/></svg>게시판 최근 글</h2><a class="text-btn" href="board.html">전체보기 <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
-        <div class="panel-body mini-list" id="boardList"></div>
-      </div>
-    </div>
-  </section>
+    <section class="tile" id="schedule" aria-labelledby="h-sched">
+      <div class="tile-head"><h2 id="h-sched"><span class="ic lilac"><svg class="ico" aria-hidden="true"><use href="#i-cal"/></svg></span>이번 주 일정</h2><span id="schedChip"></span></div>
+      <div class="sched" id="sched"></div>
+    </section>
 
-  <section class="band white" id="videoBand">
-    <div class="wrap">
-      <div class="sec-head">
-        <h2 class="sec-title">영상 모아보기 <span id="videoChips"></span></h2>
-        <a class="text-btn" href="archive.html">전체보기 <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-      </div>
+    <section class="tile" aria-labelledby="h-promise">
+      <div class="tile-head"><h2 id="h-promise"><span class="ic peach"><svg class="ico" aria-hidden="true"><use href="#i-flag"/></svg></span>공약현황</h2><span style="display:flex;gap:8px;align-items:center"><span id="promiseChip"></span><a class="text-btn" href="promise.html">전체보기 <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a></span></div>
+      <div class="promise" id="promiseList"></div>
+    </section>
+
+    <section class="tile" aria-labelledby="h-play">
+      <div class="tile-head"><h2 id="h-play"><span class="ic sky"><svg class="ico" aria-hidden="true"><use href="#i-game"/></svg></span>놀이터</h2><a class="text-btn" href="play.html">전체보기 <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
+      <div class="game-tiles" id="gameList"></div>
+    </section>
+
+    <section class="tile wide" id="soopPanel" hidden aria-labelledby="h-soop">
+      <div class="tile-head"><h2 id="h-soop"><span class="ic mint"><svg class="ico" aria-hidden="true"><use href="#i-mega"/></svg></span>방송국 최신 글</h2></div>
+      <div class="mini-list" id="soopList"></div>
+    </section>
+
+    <section class="tile wide" id="videoBand" aria-labelledby="h-video">
+      <div class="tile-head"><h2 id="h-video"><span class="ic pink"><svg class="ico" aria-hidden="true"><use href="#i-play"/></svg></span>영상 모아보기 <span id="videoChips"></span></h2><a class="text-btn" href="archive.html">전체보기 <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
       <div class="cards" id="videos"></div>
-    </div>
-  </section>
+    </section>
 
-  <section class="band">
-    <div class="wrap">
-      <div class="sec-head">
-        <h2 class="sec-title">구독 퍼스나콘 <span class="sec-sub">씨앗부터 황금 체리까지</span></h2>
-      </div>
+    <section class="tile wide persona-tile" aria-labelledby="h-persona">
+      <div class="tile-head"><h2 id="h-persona"><span class="ic lilac"><svg class="ico" aria-hidden="true"><use href="#i-star"/></svg></span>구독 퍼스나콘</h2><span class="sec-sub">씨앗부터 황금 체리까지</span></div>
       <div class="persona" id="persona"></div>
-    </div>
-  </section>
-
-  <section class="band white" id="schedule">
-    <div class="wrap two">
-      <div class="panel">
-        <div class="panel-head"><h2 class="sec-title"><svg class="ico" aria-hidden="true"><use href="#i-cal"/></svg>이번 주 일정</h2><span id="schedChip"></span></div>
-        <div class="panel-body sched" id="sched"></div>
-      </div>
-      <div class="panel">
-        <div class="panel-head"><h2 class="sec-title"><svg class="ico" aria-hidden="true"><use href="#i-flag"/></svg>공약현황</h2><span style="display:flex;gap:8px;align-items:center"><span id="promiseChip"></span><a class="text-btn" href="promise.html">전체보기 <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a></span></div>
-        <div class="panel-body promise" id="promiseList"></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="band">
-    <div class="wrap bare">
-      <div class="panel">
-        <div class="panel-head"><h2 class="sec-title"><svg class="ico" aria-hidden="true"><use href="#i-game"/></svg>놀이터</h2><span class="chip">누구나</span></div>
-        <div class="panel-body rows" id="gameList"></div>
-      </div>
-    </div>
-  </section>
+    </section>
+  </div>
 </main>
 <div id="site-footer"></div>
 <script src="data/site.js"></script>

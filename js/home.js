@@ -23,20 +23,17 @@
   function renderLive(d){
     if(!d || !d.ok){
       $("liveDot").classList.add("idle");
-      $("liveTitle").textContent = S.streamer + " 방송 소식";
-      $("liveSub").textContent = "방송 시작 여부는 방송국에서 확인할 수 있어요";
+      $("liveTitle").textContent = S.streamer + " 팬 커뮤니티";
       $("viewers").hidden = true;
-      watch.className = "btn light"; watch.firstChild.textContent = "채널 바로가기";
       return;
     }
     setArt(d.live);
     $("liveDot").classList.toggle("idle", !d.live);
-    $("liveTitle").textContent = d.live ? (d.title || S.streamer + " 지금 방송 중이에요") : "지금은 방송 중이 아니에요";
-    $("liveSub").textContent = d.live ? S.streamer + " 지금 방송 중" : "방송이 시작되면 여기에 바로 표시돼요";
+    $("livePill").classList.toggle("on", d.live);
+    $("liveTitle").textContent = d.live ? "LIVE · " + (d.title || "지금 방송 중") : "지금은 방송 쉬는 중";
     $("viewers").hidden = !d.live || !d.viewers;
-    $("viewers").textContent = "시청자 " + Number(d.viewers || 0).toLocaleString() + "명";
-    watch.className = d.live ? "btn cherry" : "btn light";
-    watch.firstChild.textContent = d.live ? "방송 보러가기" : "채널 바로가기";
+    $("viewers").textContent = Number(d.viewers || 0).toLocaleString() + "명";
+    watch.firstChild.textContent = d.live ? "방송 보러가기" : "방송국 가기";
   }
   renderLive(null);
   const getJSON = p => fetch(url(p), { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null);
@@ -64,7 +61,9 @@
       : '<a class="card" href="' + url("archive.html") + '">' + inner + '</a>';
   }
   function renderVideos(list, auto, sample){
-    if(!list.length){ $("videoBand").hidden = true; return; }
+    /* 예시 영상만 있을 때는 칸을 숨김 (유튜브가 연결되거나 실제 영상을 넣으면 나타남) */
+    if(!list.length || sample){ $("videoBand").hidden = true; return; }
+    $("videoBand").hidden = false;
     $("videoChips").innerHTML = (auto ? '<span class="chip">자동 업데이트</span>' : "") + sampleChip(sample);
     $("videos").innerHTML = list.slice(0, 4).map(videoCard).join("");
   }
@@ -124,7 +123,5 @@
 
   /* ── 놀이터 목록 ── */
   $("gameList").innerHTML = (window.GAMES || []).map(g =>
-    '<a class="item" href="' + url(g.href) + '"><span class="box">' + pc(g.icon) + '</span>'
-    + '<span><b>' + esc(g.name) + '</b><small>' + esc(g.desc) + '</small></span>'
-    + '<span class="go">' + ico("arrow") + '</span></a>').join("");
+    '<a class="game-tile" href="' + url(g.href) + '">' + pc(g.icon) + '<b>' + esc(g.name) + '</b></a>').join("");
 })();
