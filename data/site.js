@@ -39,6 +39,9 @@ window.SITE = {
   // 상단·하단 로고 그림 (손그림 체리)
   logo: "assets/logo.svg",
 
+  // 그림을 같은 이름으로 바꿨을 때 이 숫자를 1 올리면 방문자 화면에도 바로 새 그림이 나와요
+  assetVersion: 2,
+
   // 게임에 쓰는 대표 퍼스나콘 번호 (assets/p01~p12.png)
   mascot: 6,
   goldMascot: 12,

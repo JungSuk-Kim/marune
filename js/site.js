@@ -7,10 +7,11 @@
   /* ── 도구 ── */
   const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const url = p => ROOT + p;
-  const pcSrc = n => url("assets/p" + String(n).padStart(2, "0") + ".png");
+  const ver = (window.SITE && window.SITE.assetVersion) ? "?v=" + window.SITE.assetVersion : "";
+  const pcSrc = n => url("assets/p" + String(n).padStart(2, "0") + ".png") + ver;
   const pc = (n, cls) => '<img class="pc ' + (cls || "") + '" src="' + pcSrc(n) + '" alt="">';
   const ico = name => '<svg class="ico" aria-hidden="true"><use href="#i-' + name + '"/></svg>';
-  const asset = p => /^(https?:)?\/\//.test(p) ? p : url(p);
+  const asset = p => /^(https?:)?\/\//.test(p) ? p : url(p) + ver;
   const store = {
     get(k, d){ try{ const v = localStorage.getItem("cherry:" + k); return v === null ? d : JSON.parse(v); }catch(e){ return d; } },
     set(k, v){ try{ localStorage.setItem("cherry:" + k, JSON.stringify(v)); }catch(e){} }
