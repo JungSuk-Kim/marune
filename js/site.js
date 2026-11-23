@@ -41,6 +41,8 @@
     + '</svg>';
   document.body.prepend(sprite.firstChild);
 
+  const logo = S.logo ? '<img class="logo" src="' + esc(asset(S.logo)) + '" alt="">' : pc(S.mascot || 6);
+
   /* ── 헤더 ── */
   const NAV = [
     { id: "board",   label: "게시판",   href: "board.html" },
@@ -56,7 +58,7 @@
   header.innerHTML = '<div class="wrap head-row">'
     + '<nav class="main left" aria-label="주 메뉴">' + NAV.slice(0, 3).map(n => link(n)).join("")
     + NAV.slice(3).map(n => link(n, ' class="only-narrow"')).join("") + '</nav>'
-    + '<a class="wordmark" href="' + url("index.html") + '" aria-label="' + esc(S.siteName) + ' 처음으로">' + pc(S.mascot || 6) + '<span>' + esc(S.wordmark) + '</span></a>'
+    + '<a class="wordmark" href="' + url("index.html") + '" aria-label="' + esc(S.siteName) + ' 처음으로">' + logo + '<span>' + esc(S.wordmark) + '</span></a>'
     + '<div class="head-right"><nav class="main" aria-label="주 메뉴 계속">' + NAV.slice(3).map(n => link(n)).join("") + '</nav>'
     + (S.channelUrl ? '<a class="btn" href="' + esc(S.channelUrl) + '" target="_blank" rel="noopener">방송국 가기</a>' : '<span></span>')
     + '</div></div>';
@@ -72,7 +74,7 @@
     S.instagramUrl && '<a href="' + esc(S.instagramUrl) + '" target="_blank" rel="noopener">Instagram</a>'
   ].filter(Boolean).join("");
   footer.innerHTML = '<div class="wrap"><div>'
-    + '<div class="wordmark">' + pc(S.mascot || 6) + '<span>' + esc(S.wordmark) + '</span></div>'
+    + '<div class="wordmark">' + logo + '<span>' + esc(S.wordmark) + '</span></div>'
     + '<p>© ' + new Date().getFullYear() + ' ' + esc(S.siteName) + ' · Made for ' + esc(S.streamer) + '</p></div>'
     + '<div class="foot-links">' + ext
     + '<a href="' + url("privacy.html") + '">개인정보처리방침</a><a href="' + url("terms.html") + '">이용약관</a></div></div>';

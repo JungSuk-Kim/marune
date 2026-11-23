@@ -36,7 +36,10 @@ window.SITE = {
     { id: "soop",   label: "방송국 글",   external: true }   // SOOP 방송국 글을 자동으로 보여주는 칸 (여기서 쓰지 않음)
   ],
 
-  // 로고와 게임에 쓰는 대표 퍼스나콘 번호 (assets/p01~p12.png)
+  // 상단·하단 로고 그림 (손그림 체리)
+  logo: "assets/logo.svg",
+
+  // 게임에 쓰는 대표 퍼스나콘 번호 (assets/p01~p12.png)
   mascot: 6,
   goldMascot: 12,
 
