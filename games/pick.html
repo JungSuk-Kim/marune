@@ -21,18 +21,29 @@
     <p>30초 동안 튀어나오는 체리를 잡아요.</p>
   </div></div>
 
-  <section class="band"><div class="wrap"><div class="game-shell">
-    <div class="panel">
+  <section class="band"><div class="wrap bare"><div class="game-shell">
+    <div class="game-card g-pick">
+      <div class="g-top">
+        <div class="g-title"><img class="pc" src="../assets/p06.png" alt=""><div><h2>체리 따기</h2><small>내 최고 <b class="num" id="best">-</b></small></div></div>
+        <div class="g-hud"><div class="stat"><small>점수</small><b class="num" id="score">0</b></div><div class="stat"><small>남은 시간</small><b class="num" id="time">30</b></div></div>
+      </div>
+      <div class="g-timer"><i id="timebar"></i></div>
+      <div class="g-stage" id="stage">
+        <div class="pond" id="pond"></div>
+          <div class="overlay" id="overlay">
+            <div class="ov-card">
+              <span class="best-badge" id="bestBadge" hidden>최고 기록!</span>
+              <img class="pc" id="ovIcon" src="../assets/p06.png" alt="">
+              <h4 id="ovTitle">체리 따기</h4>
+              <div class="stars" id="stars" hidden></div>
+              <p id="ovText">30초 동안 튀어나오는 체리를 잡아요.</p>
+              <div class="ov-btns"><button type="button" class="btn cherry" id="startBtn">시작하기</button><a class="btn light" id="otherBtn" href="../play.html" hidden>다른 게임</a></div>
+            </div>
+          </div>
+      </div>
 
-      <div class="panel-head"><h2 class="sec-title">체리 따기</h2>
-        <div class="hud"><span>남은 시간 <b class="num" id="time">30</b>초</span><span>점수 <b class="num" id="score">0</b></span></div></div>
-      <div class="stage"><div class="pond" id="pond"></div>
-        <div class="overlay" id="overlay"><img class="pc" id="ovIcon" alt=""><h4 id="ovTitle">30초 동안 체리를 따요</h4>
-          <p id="ovText">분홍 체리는 1점, 체리 선데는 3점이에요.</p>
-          <button type="button" class="btn cherry" id="startBtn">시작하기</button></div></div>
-      <p class="game-note"><span>내 최고 기록 <b class="num" id="best"></b></span></p>
     </div>
-    <p class="how"><b>하는 법</b> · 칸에서 올라오는 체리를 누르세요. 뒤로 갈수록 빨라져요.</p>
+    <p class="how"><b>하는 법</b> · 구멍에서 올라오는 체리를 누르세요. 분홍 체리 1점, 체리 선데 3점. 연달아 맞히면 콤보가 쌓이고, 5콤보부터는 1점씩 더 받아요.</p>
     <p class="how"><a class="text-btn" href="../play.html">다른 게임 보기 <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a></p>
   </div></div></section>
 </main>

@@ -19,6 +19,74 @@ window.GameKit = {
   bestText(id){
     const g = window.GAMES.find(x => x.id === id) || {};
     const b = this.best(id);
-    return b === null ? "기록 없음" : b + (g.unit || "");
+    return b === null ? "-" : b + (g.unit || "");
+  },
+  reduced: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+
+  /* ── 효과 ── */
+  /* el 기준 위치 (stage 안의 좌표) */
+  at(stage, el){
+    const s = stage.getBoundingClientRect(), r = el.getBoundingClientRect();
+    return { x: r.left - s.left + r.width / 2, y: r.top - s.top + r.height / 2 };
+  },
+  pop(stage, x, y, text, cls){
+    const s = document.createElement("span");
+    s.className = "fx-pop" + (cls ? " " + cls : "");
+    s.textContent = text; s.style.left = x + "px"; s.style.top = y + "px";
+    stage.appendChild(s); setTimeout(() => s.remove(), 800);
+  },
+  burst(stage, x, y, colors, n){
+    if(this.reduced) return;
+    colors = colors || ["#f48fb5", "#ffd166", "#b9e3c6", "#c9b8f5"];
+    for(let i = 0; i < (n || 10); i++){
+      const d = document.createElement("span"), a = Math.PI * 2 * i / (n || 10) + Math.random() * .5, r = 28 + Math.random() * 26;
+      d.className = "fx-dot"; d.style.left = x + "px"; d.style.top = y + "px";
+      d.style.background = colors[i % colors.length];
+      d.style.setProperty("--dx", Math.cos(a) * r + "px"); d.style.setProperty("--dy", Math.sin(a) * r + "px");
+      stage.appendChild(d); setTimeout(() => d.remove(), 650);
+    }
+  },
+  confetti(stage){
+    if(this.reduced) return;
+    const colors = ["#f48fb5", "#ffd166", "#9fd9b8", "#b9a6f2", "#8fc7f2", "#ff9e7a"];
+    for(let i = 0; i < 46; i++){
+      const c = document.createElement("span");
+      c.className = "fx-conf";
+      c.style.left = Math.random() * 100 + "%";
+      c.style.background = colors[i % colors.length];
+      c.style.setProperty("--dx", (Math.random() - .5) * 120 + "px");
+      c.style.setProperty("--rot", (Math.random() * 900 - 450) + "deg");
+      c.style.animationDelay = Math.random() * .35 + "s";
+      c.style.animationDuration = 1.3 + Math.random() * .8 + "s";
+      stage.appendChild(c); setTimeout(() => c.remove(), 2600);
+    }
+  },
+  shake(el){ el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake"); },
+  /* 3, 2, 1 */
+  countdown(stage, done){
+    if(this.reduced){ done(); return; }
+    const c = document.createElement("div"); c.className = "countdown"; stage.appendChild(c);
+    const seq = ["3", "2", "1", "시작!"]; let i = 0;
+    const next = () => {
+      if(i >= seq.length){ c.remove(); done(); return; }
+      c.innerHTML = '<span>' + seq[i] + '</span>'; i++;
+      setTimeout(next, i === seq.length ? 450 : 600);
+    };
+    next();
+  },
+  /* 결과 창 채우기 */
+  result(o){
+    const $ = id => document.getElementById(id);
+    if(o.icon) $("ovIcon").src = o.icon;
+    $("ovTitle").textContent = o.title;
+    $("ovText").textContent = o.text || "";
+    const st = $("stars");
+    st.innerHTML = [0, 1, 2].map(i => '<span class="' + (i < o.stars ? "on" : "") + '" style="animation-delay:' + (.15 + i * .15) + 's">★</span>').join("");
+    st.hidden = false;
+    $("bestBadge").hidden = !o.best;
+    $("startBtn").textContent = o.again || "다시 하기";
+    $("otherBtn").hidden = false;
+    $("overlay").hidden = false;
+    if(o.best) this.confetti($("stage"));
   }
 };

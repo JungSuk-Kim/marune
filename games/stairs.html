@@ -21,20 +21,29 @@
     <p>방향을 맞춰 계단을 끝까지 올라요.</p>
   </div></div>
 
-  <section class="band"><div class="wrap"><div class="game-shell">
-    <div class="panel">
-
-      <div class="panel-head"><h2 class="sec-title">체리 계단</h2>
-        <div class="hud"><span>오른 칸 <b class="num" id="score">0</b></span></div></div>
-      <div class="stage"><div class="timebar"><i id="timebar"></i></div>
+  <section class="band"><div class="wrap bare"><div class="game-shell">
+    <div class="game-card g-stairs">
+      <div class="g-top">
+        <div class="g-title"><img class="pc" src="../assets/p07.png" alt=""><div><h2>체리 계단</h2><small>내 최고 <b class="num" id="best">-</b></small></div></div>
+        <div class="g-hud"><div class="stat"><small>오른 칸</small><b class="num" id="score">0</b></div></div>
+      </div>
+      <div class="g-timer"><i id="timebar"></i></div>
+      <div class="g-stage" id="stage">
         <canvas class="stairs-canvas" id="cv" width="480" height="600" aria-label="계단 게임 화면"></canvas>
-        <div class="pad-row"><button type="button" class="btn light" id="turnBtn">방향 바꿔 오르기</button><button type="button" class="btn" id="goBtn">오르기</button></div>
-        <div class="overlay" id="overlay"><img class="pc" id="ovIcon" alt=""><h4 id="ovTitle">계단을 끝까지 올라요</h4>
-          <p id="ovText">다음 계단이 지금 방향이면 오르기, 반대쪽이면 방향 바꿔 오르기를 눌러요.</p>
-          <button type="button" class="btn cherry" id="startBtn">시작하기</button></div></div>
-      <p class="game-note"><span>내 최고 기록 <b class="num" id="best"></b></span><span>키보드: ← 방향 바꾸기 · → 오르기</span></p>
+          <div class="overlay" id="overlay">
+            <div class="ov-card">
+              <span class="best-badge" id="bestBadge" hidden>최고 기록!</span>
+              <img class="pc" id="ovIcon" src="../assets/p07.png" alt="">
+              <h4 id="ovTitle">체리 계단</h4>
+              <div class="stars" id="stars" hidden></div>
+              <p id="ovText">방향을 맞춰 계단을 끝까지 올라요.</p>
+              <div class="ov-btns"><button type="button" class="btn cherry" id="startBtn">시작하기</button><a class="btn light" id="otherBtn" href="../play.html" hidden>다른 게임</a></div>
+            </div>
+          </div>
+      </div>
+      <div class="pad-row"><button type="button" class="pad-btn" id="turnBtn"><svg class="ico"><use href="#i-turn"/></svg>방향 바꾸기</button><button type="button" class="pad-btn main" id="goBtn"><svg class="ico"><use href="#i-up"/></svg>오르기</button></div>
     </div>
-    <p class="how"><b>하는 법</b> · 시간이 다 떨어지거나 계단이 없는 쪽으로 가면 끝나요. 오를 때마다 시간이 조금 채워져요.</p>
+    <p class="how"><b>하는 법</b> · 다음 계단이 지금 방향이면 오르기, 반대쪽이면 방향 바꾸기를 눌러요. 시간이 다 떨어지거나 계단이 없는 쪽으로 가면 끝나요. 키보드는 ← 방향 바꾸기, → 오르기.</p>
     <p class="how"><a class="text-btn" href="../play.html">다른 게임 보기 <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a></p>
   </div></div></section>
 </main>

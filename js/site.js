@@ -38,6 +38,9 @@
     + '<symbol id="i-image" viewBox="0 0 16 16"><rect x="2.5" y="3" width="11" height="10" rx="2"/><path d="M2.500 10.500l3-3 2.500 2.500 1.500-1.500 4 4"/><circle cx="10.500" cy="6" r="1"/></symbol>'
     + '<symbol id="i-chat" viewBox="0 0 16 16"><path d="M2.500 4.500a2 2 0 012-2h7a2 2 0 012 2v4.500a2 2 0 01-2 2H7l-3 2.500v-2.500a2 2 0 01-1.500-2z"/></symbol>'
     + '<symbol id="i-mega" viewBox="0 0 16 16"><path d="M2.500 6.500v3h2l5 3v-9l-5 3zM12 6.200a2.500 2.500 0 010 3.600M5 9.500l.800 3.500"/></symbol>'
+    + '<symbol id="i-reset" viewBox="0 0 16 16"><path d="M3 8a5 5 0 1 0 1.500-3.600M3 2.500v2.500h2.500"/></symbol>'
+    + '<symbol id="i-turn" viewBox="0 0 16 16"><path d="M5 3L2 6l3 3M2 6h8a4 4 0 0 1 0 8H8"/></symbol>'
+    + '<symbol id="i-up" viewBox="0 0 16 16"><path d="M8 13V3M4 7l4-4 4 4"/></symbol>'
     + '<symbol id="i-ext" viewBox="0 0 16 16"><path d="M9 3h4v4M13 3L7.500 8.500M11 9.500V12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1h2.500"/></symbol>'
     + '</svg>';
   document.body.prepend(sprite.firstChild);

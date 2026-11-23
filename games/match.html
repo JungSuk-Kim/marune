@@ -21,17 +21,29 @@
     <p>같은 퍼스나콘 두 장을 찾아요.</p>
   </div></div>
 
-  <section class="band"><div class="wrap"><div class="game-shell">
-    <div class="panel">
+  <section class="band"><div class="wrap bare"><div class="game-shell">
+    <div class="game-card g-match">
+      <div class="g-top">
+        <div class="g-title"><img class="pc" src="../assets/p03.png" alt=""><div><h2>짝 맞추기</h2><small>내 최고 <b class="num" id="best">-</b></small></div></div>
+        <div class="g-hud"><div class="stat"><small>뒤집은 횟수</small><b class="num" id="moves">0</b></div><div class="stat"><small>찾은 짝</small><b class="num" id="found">0/8</b></div><button type="button" class="icon-btn" id="resetBtn" aria-label="새 게임" title="새 게임"><svg class="ico"><use href="#i-reset"/></svg></button></div>
+      </div>
+      
+      <div class="g-stage" id="stage">
+        <div class="memo" id="memo"></div>
+          <div class="overlay" id="overlay">
+            <div class="ov-card">
+              <span class="best-badge" id="bestBadge" hidden>최고 기록!</span>
+              <img class="pc" id="ovIcon" src="../assets/p03.png" alt="">
+              <h4 id="ovTitle">짝 맞추기</h4>
+              <div class="stars" id="stars" hidden></div>
+              <p id="ovText">같은 퍼스나콘 두 장을 찾아요.</p>
+              <div class="ov-btns"><button type="button" class="btn cherry" id="startBtn">시작하기</button><a class="btn light" id="otherBtn" href="../play.html" hidden>다른 게임</a></div>
+            </div>
+          </div>
+      </div>
 
-      <div class="panel-head"><h2 class="sec-title">짝 맞추기</h2>
-        <div class="hud"><span>뒤집은 횟수 <b class="num" id="moves">0</b></span><button type="button" class="btn light" id="resetBtn" style="padding:5px 12px">새 게임</button></div></div>
-      <div class="stage"><div class="memo" id="memo"></div>
-        <div class="overlay" id="overlay" hidden><img class="pc" id="ovIcon" alt=""><h4 id="ovTitle"></h4>
-          <p id="ovText"></p><button type="button" class="btn cherry" id="againBtn">다시 하기</button></div></div>
-      <p class="game-note"><span>내 최고 기록 <b class="num" id="best"></b></span></p>
     </div>
-    <p class="how"><b>하는 법</b> · 카드 두 장을 뒤집어 같은 그림이면 맞춘 거예요. 적게 뒤집을수록 좋은 기록이에요.</p>
+    <p class="how"><b>하는 법</b> · 카드 두 장을 뒤집어 같은 그림이면 짝을 찾은 거예요. 적게 뒤집을수록 좋은 기록이에요.</p>
     <p class="how"><a class="text-btn" href="../play.html">다른 게임 보기 <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a></p>
   </div></div></section>
 </main>
