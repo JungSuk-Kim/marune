@@ -13,6 +13,7 @@
     if(S.heroRatio) $("hero").style.setProperty("--hero-ratio", S.heroRatio);
   };
   setArt(true);
+  $("heroSocial").innerHTML = window.CM.socialHtml();
   if(S.songbookUrl){ $("songBtn").href = S.songbookUrl; $("songBtn").hidden = false; }
   if(S.giftInfo){
     const b = $("giftBtn"); b.hidden = false;

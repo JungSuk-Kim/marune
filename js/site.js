@@ -41,11 +41,21 @@
     + '<symbol id="i-reset" viewBox="0 0 16 16"><path d="M3 8a5 5 0 1 0 1.500-3.600M3 2.500v2.500h2.500"/></symbol>'
     + '<symbol id="i-turn" viewBox="0 0 16 16"><path d="M5 3L2 6l3 3M2 6h8a4 4 0 0 1 0 8H8"/></symbol>'
     + '<symbol id="i-up" viewBox="0 0 16 16"><path d="M8 13V3M4 7l4-4 4 4"/></symbol>'
+    + '<symbol id="i-video" viewBox="0 0 16 16"><rect x="1.800" y="3.500" width="12.400" height="9" rx="2.600"/><path d="M6.800 6.200v3.600L9.900 8z" fill="currentColor"/></symbol>'
+    + '<symbol id="i-camera" viewBox="0 0 16 16"><rect x="2.200" y="2.200" width="11.600" height="11.600" rx="3.400"/><circle cx="8" cy="8" r="2.700"/><circle cx="11.200" cy="4.800" r=".5" fill="currentColor"/></symbol>'
+    + '<symbol id="i-music" viewBox="0 0 16 16"><path d="M6 12.500V4l7-1.500v8.500"/><circle cx="4.300" cy="12.500" r="1.800"/><circle cx="11.300" cy="11" r="1.800"/></symbol>'
     + '<symbol id="i-ext" viewBox="0 0 16 16"><path d="M9 3h4v4M13 3L7.500 8.500M11 9.500V12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1h2.500"/></symbol>'
     + '</svg>';
   document.body.prepend(sprite.firstChild);
 
   const logo = S.logo ? '<img class="logo" src="' + esc(asset(S.logo)) + '" alt="">' : pc(S.mascot || 6);
+
+  /* ── 바로가기 아이콘 ── */
+  const SOCIAL = [
+    S.youtubeUrl && { cls: "yt", label: "유튜브", icon: "video", href: S.youtubeUrl },
+    S.instagramUrl && { cls: "ig", label: "인스타그램", icon: "camera", href: S.instagramUrl }
+  ].filter(Boolean);
+  const socialHtml = cls => SOCIAL.map(s => '<a class="social ' + s.cls + (cls ? " " + cls : "") + '" href="' + esc(s.href) + '" target="_blank" rel="noopener" aria-label="' + s.label + ' 바로가기" title="' + s.label + '">' + ico(s.icon) + '<span>' + s.label + '</span></a>').join("");
 
   /* ── 헤더 ── */
   const NAV = [
@@ -66,7 +76,8 @@
     + NAV.slice(half).map(n => link(n, ' class="only-narrow"')).join("") + '</nav>'
     + '<a class="wordmark" href="' + url("index.html") + '" aria-label="' + esc(S.siteName) + ' 처음으로">' + logo + '<span>' + esc(S.wordmark) + '</span></a>'
     + '<div class="head-right"><nav class="main" aria-label="주 메뉴 계속">' + NAV.slice(half).map(n => link(n)).join("") + '</nav>'
-    + (S.channelUrl ? '<a class="btn" href="' + esc(S.channelUrl) + '" target="_blank" rel="noopener">방송국 가기</a>' : '<span></span>')
+    + '<div class="head-actions">' + socialHtml("icon-only")
+    + (S.channelUrl ? '<a class="btn" href="' + esc(S.channelUrl) + '" target="_blank" rel="noopener">방송국 가기</a>' : '') + '</div>'
     + '</div></div>';
   const slotH = document.getElementById("site-header");
   if(slotH) slotH.replaceWith(header);
@@ -76,13 +87,12 @@
   footer.className = "site";
   const ext = [
     S.channelUrl && '<a href="' + esc(S.channelUrl) + '" target="_blank" rel="noopener">SOOP 방송국</a>',
-    S.youtubeUrl && '<a href="' + esc(S.youtubeUrl) + '" target="_blank" rel="noopener">YouTube</a>',
-    S.instagramUrl && '<a href="' + esc(S.instagramUrl) + '" target="_blank" rel="noopener">Instagram</a>',
     S.songbookUrl && '<a href="' + esc(S.songbookUrl) + '" target="_blank" rel="noopener">노래책</a>'
   ].filter(Boolean).join("");
   footer.innerHTML = '<div class="wrap"><div>'
     + '<div class="wordmark">' + logo + '<span>' + esc(S.wordmark) + '</span></div>'
-    + '<p>© ' + new Date().getFullYear() + ' ' + esc(S.siteName) + ' · Made for ' + esc(S.streamer) + '</p></div>'
+    + '<p>© ' + new Date().getFullYear() + ' ' + esc(S.siteName) + ' · Made for ' + esc(S.streamer) + '</p>'
+    + (SOCIAL.length ? '<div class="foot-social">' + socialHtml() + '</div>' : '') + '</div>'
     + '<div class="foot-links">' + ext
     + '<a href="' + url("privacy.html") + '">개인정보처리방침</a><a href="' + url("terms.html") + '">이용약관</a></div></div>';
   const slotF = document.getElementById("site-footer");
@@ -108,5 +118,5 @@
       .then(r => r.ok ? r.json() : null).then(d => d && d.ok ? d : null).catch(() => null);
   }
 
-  window.CM = { ROOT, S, esc, url, pc, pcSrc, ico, asset, store, toast, sampleChip, vodCard, fetchVods };
+  window.CM = { ROOT, S, esc, url, pc, pcSrc, ico, asset, store, toast, sampleChip, vodCard, fetchVods, socialHtml };
 })();

@@ -550,3 +550,18 @@ a.post-row.soop-row:hover{background:#eaf7ef}
 .mix-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
 .mix-head h3{font-size:17px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
 .mix-head h3::before{content:"";width:4px;height:15px;border-radius:3px;background:var(--cherry)}
+
+/* 유튜브·인스타그램 바로가기 */
+.head-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
+.social{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:8px 14px 8px 10px;font-size:13px;font-weight:600;color:#fff;transition:transform .15s,filter .15s}
+.social .ico{width:18px;height:18px;stroke-width:1.7}
+.social:hover{transform:translateY(-1px);filter:brightness(1.06)}
+.social.yt{background:#ff3d3d}
+.social.ig{background:linear-gradient(45deg,#f9a03f 0%,#e9417a 45%,#a347d6 100%)}
+.social.icon-only{width:38px;height:38px;padding:0;justify-content:center}
+.social.icon-only span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.hero-social{display:flex;gap:8px;margin-top:-4px}
+.foot-social{display:flex;gap:8px;margin-top:12px}
+.foot-social .social{padding:6px 12px 6px 9px;font-size:12px}
+.foot-social .social .ico{width:16px;height:16px}
+@media (max-width:480px){ .head-actions .social.icon-only{width:34px;height:34px} .head-actions .btn{padding:8px 12px;font-size:13px} }
