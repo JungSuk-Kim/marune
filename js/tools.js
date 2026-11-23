@@ -479,11 +479,90 @@
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(() => draw());
 })();
 
+/* ───────── 추억의 뽑기 (문방구 종이 뽑기판) ───────── */
+(function(){
+  const { store, toast, esc } = window.CM, K = window.GameKit;
+  const $ = id => document.getElementById(id);
+  const grid = $("ppGrid"); if(!grid) return;
+  const RANK = ["#ffc928", "#ff86ad", "#6cc3f5", "#9fd34a", "#c3a4f5", "#ffa45c"];
+  const PAPER = ["#ffd9e6", "#fff0b3", "#d4f2e4", "#dfe9ff", "#ffe2cc", "#eadcff"];
+  const LOSE = ["꽝", "꽝! 다음 기회에", "아쉽다, 꽝", "꽝… 한 번 더?", "꽝이에요"];
+  const DEF = { items: [{ name: "애교 한 번", count: 1 }, { name: "노래 신청권", count: 2 }, { name: "칭찬 한마디", count: 5 }], size: 50 };
+  let st = store.get("tool-ppopgi", null), busy = false;
+  const parse = text => text.split("\n").map(s => s.trim()).filter(Boolean).map(s => {
+    const m = s.match(/^(.*?)\s*[xX×*]\s*(\d+)\s*$/);
+    return m ? { name: m[1].trim() || "상품", count: Math.max(1, Math.min(99, Number(m[2]))) } : { name: s, count: 1 };
+  }).slice(0, 6);
+  function deal(items, size){
+    const total = items.reduce((a, b) => a + b.count, 0);
+    if(total > size) return toast("상품 개수가 뽑기 장수보다 많아요"), false;
+    const prizes = [];
+    items.forEach((it, i) => { for(let k = 0; k < it.count; k++) prizes.push(i); });
+    while(prizes.length < size) prizes.push(-1);
+    for(let i = prizes.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [prizes[i], prizes[j]] = [prizes[j], prizes[i]]; }
+    st = { items, size, t: prizes.map(p => ({ p, o: 0, c: Math.floor(Math.random() * PAPER.length), r: Math.round((Math.random() - .5) * 8) })) };
+    save(); return true;
+  }
+  const save = () => store.set("tool-ppopgi", st);
+  const left = i => st.items[i].count - st.t.filter(x => x.o && x.p === i).length;
+  function render(){
+    $("ppPrizes").innerHTML = st.items.map((it, i) => {
+      const l = left(i);
+      return '<li class="' + (l ? "" : "gone") + '" style="--c:' + RANK[i] + '"><b>' + (i + 1) + '등</b><span>' + esc(it.name) + '</span><em>' + l + '/' + it.count + '</em></li>';
+    }).join("");
+    const rest = st.t.filter(x => !x.o).length;
+    $("ppLeft").textContent = rest ? "남은 뽑기 " + rest + "장 · 한 장씩 뜯어 보세요" : "다 뜯었어요! 새 판을 깔아 주세요";
+    grid.style.setProperty("--cols", st.size >= 100 ? 10 : st.size >= 50 ? 10 : 6);
+    grid.innerHTML = st.t.map((x, i) => x.o
+      ? '<span class="pp-t torn' + (x.p >= 0 ? " win" : "") + '" style="--c:' + (x.p >= 0 ? RANK[x.p] : "#cfc8da") + '">' + (x.p >= 0 ? (x.p + 1) + "등" : "꽝") + '</span>'
+      : '<button type="button" class="pp-t" data-i="' + i + '" style="--c:' + PAPER[x.c] + ';--r:' + x.r + 'deg" aria-label="' + (i + 1) + '번 뽑기"><span>' + (i + 1) + '</span></button>').join("");
+    $("ppItems").value = st.items.map(it => it.name + " x " + it.count).join("\n");
+    $("ppSize").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(Number(b.dataset.n) === st.size)));
+  }
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  grid.addEventListener("click", async e => {
+    const b = e.target.closest(".pp-t[data-i]"); if(!b || busy) return;
+    busy = true;
+    const i = Number(b.dataset.i), x = st.t[i];
+    b.classList.add("rip");
+    await wait(K.reduced ? 0 : 260);
+    x.o = 1; if(x.p < 0) x.m = LOSE[Math.floor(Math.random() * LOSE.length)];
+    save(); render();
+    const win = x.p >= 0, ov = $("ppOpen");
+    ov.innerHTML = '<div class="pp-paper' + (win ? " win" : "") + '" style="--c:' + PAPER[x.c] + ';--rc:' + (win ? RANK[x.p] : "#8d86a0") + '">'
+      + '<div class="pp-in"><small>' + (i + 1) + '번</small>' + (win ? '<b>' + (x.p + 1) + '등</b><em>' + esc(st.items[x.p].name) + '</em>' : '<b class="lose">' + esc(x.m) + '</b>') + '</div>'
+      + '<i class="flap l"></i><i class="flap r"></i></div><p class="pp-hint">화면을 누르면 닫혀요</p>';
+    ov.classList.add("on");
+    await wait(K.reduced ? 50 : 750);
+    ov.querySelector(".pp-paper").classList.add("open");
+    await wait(K.reduced ? 50 : 650);
+    if(win){
+      const bd = $("ppBoard"), a = bd.getBoundingClientRect(), p = ov.querySelector(".pp-paper").getBoundingClientRect();
+      K.burst(bd, p.left - a.left + p.width / 2, p.top - a.top + p.height / 2, [RANK[x.p], "#ffd166", "#fff"], 18);
+      if(x.p === 0) K.confetti(bd);
+    }
+    if(!st.t.some(t => !t.o)) toast("뽑기판을 다 뜯었어요!");
+    busy = false;
+  });
+  $("ppOpen").addEventListener("click", () => { if(!busy) $("ppOpen").classList.remove("on"); });
+  $("ppNew").addEventListener("click", () => { if(busy) return; if(deal(st.items, st.size)){ $("ppOpen").classList.remove("on"); render(); toast("새 뽑기판을 깔았어요"); } });
+  $("ppSize").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; $("ppSize").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); });
+  $("ppApply").addEventListener("click", () => {
+    const items = parse($("ppItems").value);
+    if(!items.length) return toast("상품을 한 개 이상 적어 주세요");
+    const sel = $("ppSize").querySelector('[aria-pressed="true"]'), size = sel ? Number(sel.dataset.n) : st.size;
+    if(deal(items, size)){ $("ppCard").querySelector("details").open = false; $("ppOpen").classList.remove("on"); render(); toast("새 뽑기판을 깔았어요"); }
+  });
+  if(!st || !st.t) deal(DEF.items, DEF.size);
+  render();
+  window.__pp = () => st;
+})();
+
 /* ───────── 도구 탭 ───────── */
 (function(){
   const tabs = document.getElementById("toolTabs"); if(!tabs) return;
   const { store } = window.CM;
-  const names = ["wheel", "draw", "dice", "ladder"];
+  const names = ["wheel", "draw", "dice", "ladder", "ppopgi"];
   function show(name, push){
     if(!names.includes(name)) name = "wheel";
     tabs.querySelectorAll("[data-tool]").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tool === name)));

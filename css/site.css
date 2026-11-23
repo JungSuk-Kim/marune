@@ -621,3 +621,54 @@ a.post-row.soop-row:hover{background:#eaf7ef}
 .num-quick button:hover{border-color:var(--cherry);color:var(--cherry)}
 .num-range[hidden],.t-draw textarea[hidden]{display:none}
 @media (max-width:520px){ .num-quick{margin-left:0;width:100%} .num-quick button{flex:1} }
+
+/* 추억의 뽑기 */
+.tool-tabs{grid-template-columns:repeat(5,1fr);max-width:760px}
+.pp-board{position:relative;border-radius:22px;padding:16px;background:#fff7dc;border:4px solid #f2c94c;box-shadow:inset 0 0 0 4px #fff7dc,inset 0 0 0 7px #e8453c}
+.pp-poster{background:#fff;border-radius:16px;padding:0 0 12px;overflow:hidden;box-shadow:0 3px 0 #f0e0a8;margin-bottom:14px;text-align:center}
+.pp-title{background:repeating-linear-gradient(-45deg,#e8453c 0 14px,#f05a50 14px 28px);color:#fff;font-family:var(--font-display);font-weight:700;font-size:34px;line-height:1;padding:12px 10px 10px;letter-spacing:.04em;text-shadow:0 2px 0 rgba(0,0,0,.18)}
+.pp-title span{color:#ffe066;font-size:22px;margin:0 10px;vertical-align:middle}
+.pp-prizes{list-style:none;margin:12px 14px 6px;padding:0;display:grid;gap:6px}
+.pp-prizes li{display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:12px;background:color-mix(in srgb,var(--c) 14%,#fff);text-align:left}
+.pp-prizes b{flex:none;background:var(--c);color:#fff;border-radius:999px;padding:2px 10px;font-family:var(--font-display);font-size:20px;line-height:1.2;text-shadow:0 1px 0 rgba(0,0,0,.2)}
+.pp-prizes span{flex:1;font-weight:700;color:var(--ink);font-size:15px}
+.pp-prizes em{font-style:normal;font-weight:800;font-size:13px;color:var(--ink-2)}
+.pp-prizes li.gone{opacity:.45}
+.pp-prizes li.gone span{text-decoration:line-through}
+.pp-left{margin:4px 0 0;font-size:13px;color:var(--ink-3);font-weight:600}
+.pp-grid{display:grid;grid-template-columns:repeat(var(--cols,10),1fr);gap:6px}
+.pp-t{aspect-ratio:1;border:0;border-radius:6px;position:relative;cursor:pointer;transform:rotate(var(--r,0deg));
+  background:linear-gradient(135deg,var(--c) 0 47%,color-mix(in srgb,var(--c) 78%,#7a5a3a) 49.5%,color-mix(in srgb,var(--c) 92%,#fff) 51%,var(--c) 100%);
+  box-shadow:0 2px 0 rgba(122,90,58,.22),0 3px 6px rgba(42,35,64,.08);transition:transform .15s,box-shadow .15s;display:grid;place-items:center;padding:0}
+.pp-t span{font-size:10px;font-weight:800;color:rgba(42,35,64,.38)}
+.pp-t:hover{transform:translateY(-3px) rotate(var(--r,0deg)) scale(1.06);box-shadow:0 6px 12px rgba(42,35,64,.16)}
+.pp-t.rip{animation:pprip .28s ease-in forwards}
+@keyframes pprip{to{transform:translateY(-26px) rotate(18deg) scale(1.3);opacity:0}}
+.pp-t.torn{cursor:default;background:repeating-linear-gradient(45deg,rgba(255,255,255,.5) 0 4px,transparent 4px 8px);border:1.5px dashed color-mix(in srgb,var(--c) 80%,#000 10%);box-shadow:none;font-size:11px;font-weight:800;color:#a79fb6;transform:none}
+.pp-t.torn.win{color:#fff;background:var(--c);border-style:solid;font-family:var(--font-display);font-size:14px;text-shadow:0 1px 0 rgba(0,0,0,.2)}
+.pp-open{position:absolute;inset:0;border-radius:18px;background:rgba(42,35,64,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;opacity:0;pointer-events:none;transition:opacity .2s;cursor:pointer;perspective:900px}
+.pp-open.on{opacity:1;pointer-events:auto}
+.pp-paper{position:relative;width:min(300px,70%);aspect-ratio:1;transform-style:preserve-3d;animation:ppshake .7s ease-in-out}
+@keyframes ppshake{0%{transform:scale(.3) rotate(-20deg)}35%{transform:scale(1) rotate(4deg)}50%{transform:rotate(-5deg)}65%{transform:rotate(4deg)}80%{transform:rotate(-2deg)}100%{transform:none}}
+.pp-in{position:absolute;inset:0;border-radius:10px;background:#fffdf6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:0 18px 40px rgba(0,0,0,.35);text-align:center;padding:16px;
+  background-image:linear-gradient(90deg,transparent 49.6%,rgba(122,90,58,.12) 50%,transparent 50.4%),linear-gradient(0deg,transparent 49.6%,rgba(122,90,58,.08) 50%,transparent 50.4%)}
+.pp-in small{font-size:13px;font-weight:700;color:var(--ink-3)}
+.pp-in b{font-family:var(--font-display);font-size:clamp(48px,12vw,76px);line-height:1;color:var(--rc)}
+.pp-in b.lose{font-size:clamp(30px,8vw,46px)}
+.pp-in em{font-style:normal;font-weight:800;font-size:clamp(17px,4vw,22px);color:var(--ink);background:color-mix(in srgb,var(--rc) 18%,#fff);border-radius:999px;padding:5px 16px}
+.pp-paper .flap{position:absolute;top:0;bottom:0;width:50%;background:linear-gradient(135deg,var(--c),color-mix(in srgb,var(--c) 86%,#7a5a3a));transition:transform .6s cubic-bezier(.5,0,.3,1);backface-visibility:hidden;box-shadow:inset 0 0 0 1px rgba(122,90,58,.12)}
+.pp-paper .flap.l{left:0;transform-origin:left center;border-radius:10px 0 0 10px}
+.pp-paper .flap.r{right:0;transform-origin:right center;border-radius:0 10px 10px 0}
+.pp-paper.open .flap.l{transform:rotateY(-178deg)}
+.pp-paper.open .flap.r{transform:rotateY(178deg)}
+.pp-paper.win.open .pp-in{animation:pop .4s .45s both}
+.pp-hint{margin:0;color:#fff;font-size:12px;opacity:.8}
+.pp-size-row{display:flex;align-items:center;gap:12px;margin:4px 0 12px}
+.t-pp textarea.field{min-height:110px}
+@media (max-width:640px){
+  .tool-tabs{grid-template-columns:repeat(5,1fr)}
+  .tool-tabs button{font-size:11px;padding:8px 2px}
+  .pp-board{padding:10px}
+  .pp-grid{--cols:6!important;gap:4px}
+  .pp-title{font-size:28px}
+}
