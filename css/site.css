@@ -544,3 +544,9 @@ a.post-row.soop-row:hover{background:#eaf7ef}
 @media (max-width:980px){ .cards.catch-grid{grid-template-columns:repeat(4,1fr)} }
 @media (max-width:760px){ .cards.catch-grid{grid-template-columns:repeat(3,1fr)} }
 @media (max-width:480px){ .cards.catch-grid{grid-template-columns:repeat(2,1fr)} .tile .cards.catch-grid .card:nth-child(n+5){display:none} }
+
+/* 자료실 전체 탭 */
+.mix{display:flex;flex-direction:column;gap:28px}
+.mix-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.mix-head h3{font-size:17px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.mix-head h3::before{content:"";width:4px;height:15px;border-radius:3px;background:var(--cherry)}

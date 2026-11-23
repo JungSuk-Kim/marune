@@ -34,42 +34,81 @@
   /* ── 자료실 ── */
   if(page === "archive"){
     const D = window.ARCHIVE || { items: [], categories: [] };
-    $("sampleChip").innerHTML = sampleChip(D.sample);
+    /* 예시(sample: true) 상태의 자료는 실제 사이트에 보이지 않게 함 */
+    const own = D.sample ? [] : D.items;
+    const ownCats = (D.categories || []).filter(c => own.some(x => x.category === c));
+    const AUTO = { "유튜브": "yt", "캐치": "catch", "클립": "clip" };
+    const live = location.protocol.startsWith("http");
     const TINTS = ["#fbe3e9", "#fdebd6", "#e2f1e6", "#ece6f8"];
-    const AUTO = { "캐치": "catch", "클립": "clip" };
+    const list = $("list"), more = $("moreBtn");
     let vodState = null;
+
+    function ownCard(v, i){
+      const thumb = v.image ? asset(v.image) : (v.youtube ? "https://i.ytimg.com/vi/" + encodeURIComponent(v.youtube) + "/mqdefault.jpg" : "");
+      const style = thumb ? 'background-image:url(&quot;' + esc(thumb) + '&quot;)' : "background-color:" + TINTS[i % 4];
+      const inner = '<div class="thumb" style="' + style + '"><span class="kind">' + esc(v.category) + '</span>' + (thumb ? "" : pc(v.icon || 6))
+        + (v.youtube ? '<span class="play"><svg class="ico"><use href="#i-play"/></svg></span>' : "") + '</div>'
+        + '<div class="c-text">' + esc(v.title) + '<small>' + esc(v.date || "") + '</small></div>';
+      if(v.youtube) return '<a class="card" href="https://www.youtube.com/watch?v=' + encodeURIComponent(v.youtube) + '" target="_blank" rel="noopener">' + inner + '</a>';
+      if(v.image) return '<a class="card" href="' + esc(asset(v.image)) + '" target="_blank" rel="noopener">' + inner + '</a>';
+      return '<div class="card">' + inner + '</div>';
+    }
+    const ytCard = x => '<a class="card" href="https://www.youtube.com/watch?v=' + encodeURIComponent(x.id) + '" target="_blank" rel="noopener">'
+      + '<div class="thumb" style="background-image:url(&quot;https://i.ytimg.com/vi/' + encodeURIComponent(x.id) + '/mqdefault.jpg&quot;)"><span class="kind">유튜브</span><span class="play"><svg class="ico"><use href="#i-play"/></svg></span></div>'
+      + '<div class="c-text"><span class="t2">' + esc(x.title) + '</span><small>' + esc(String(x.published || "").slice(0, 10)) + '</small></div></a>';
+    const getYT = () => live ? fetch(url("api/youtube"), { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(d => d && d.ok ? d : null).catch(() => null) : Promise.resolve(null);
+    const offline = what => '<p class="empty">' + (live ? what + "을 불러오지 못했어요. 잠시 뒤 다시 열어 주세요." : "사이트를 배포한 뒤에 " + esc(S.streamer) + " " + what + "이 여기에 보여요.") + '</p>';
+
+    /* 전체: 종류별 최신 몇 개씩 */
+    async function showAll(){
+      list.className = "mix"; more.hidden = true;
+      $("sampleChip").innerHTML = live ? '<span class="chip leaf">자동 업데이트</span>' : "";
+      list.innerHTML = '<p class="empty">불러오는 중…</p>';
+      const [yt, ca, cl] = await Promise.all([getYT(), fetchVods("catch", 1, 6), fetchVods("clip", 1, 4)]);
+      const sec = (title, count, tab, cls, cards) => cards ? '<section class="mix-sec"><div class="mix-head"><h3>' + title + (count ? ' <span class="sec-sub num">' + count + '개</span>' : "") + '</h3>'
+        + '<button type="button" class="text-btn" data-tab="' + tab + '">더 보기 ' + ico("arrow") + '</button></div><div class="cards ' + cls + '">' + cards + '</div></section>' : "";
+      const html = sec("올린 자료", own.length, ownCats[0] || "", "", own.slice(0, 4).map(ownCard).join(""))
+        + sec("캐치", ca && ca.total, "캐치", "catch-grid", ca && ca.items.slice(0, 6).map(vodCard).join(""))
+        + sec("클립", cl && cl.total, "클립", "", cl && cl.items.slice(0, 4).map(vodCard).join(""))
+        + sec("유튜브", 0, "유튜브", "", yt && yt.items.slice(0, 4).map(ytCard).join(""));
+      list.innerHTML = html || offline("방송국 영상");
+    }
+    list.addEventListener("click", e => {
+      const b = e.target.closest("[data-tab]"); if(!b) return;
+      const t = [...$("tabs").querySelectorAll("button")].find(x => x.textContent === b.dataset.tab);
+      if(t){ t.click(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+    });
+
+    /* 캐치·클립: 12개씩, 더 보기 */
     async function loadVods(type, page){
-      const more = $("moreBtn");
-      if(page === 1){ $("list").innerHTML = '<p class="empty">불러오는 중…</p>'; }
+      list.className = "cards" + (type === "catch" ? " catch-grid" : "");
+      if(page === 1) list.innerHTML = '<p class="empty">불러오는 중…</p>';
       more.disabled = true;
       const d = await fetchVods(type, page, 12);
-      if(page === 1) $("list").innerHTML = "";
-      if(!d){
-        $("list").innerHTML = '<p class="empty">' + (location.protocol.startsWith("http") ? "영상을 불러오지 못했어요. 잠시 뒤 다시 열어 주세요." : "사이트를 배포한 뒤에 " + esc(S.streamer) + " 방송국 " + (type === "catch" ? "캐치" : "클립") + " 영상이 여기에 보여요.") + '</p>';
-        more.hidden = true; return;
-      }
-      $("list").insertAdjacentHTML("beforeend", d.items.map(vodCard).join("") || (page === 1 ? '<p class="empty">영상이 없어요</p>' : ""));
+      if(page === 1) list.innerHTML = "";
+      if(!d){ list.innerHTML = offline("방송국 " + (type === "catch" ? "캐치" : "클립") + " 영상"); more.hidden = true; return; }
+      list.insertAdjacentHTML("beforeend", d.items.map(vodCard).join("") || (page === 1 ? '<p class="empty">영상이 없어요</p>' : ""));
       $("sampleChip").innerHTML = '<span class="chip leaf">SOOP 자동 · ' + d.total + '개</span>';
-      vodState = { type, page, last: d.lastPage };
+      vodState = { type, page };
       more.hidden = page >= d.lastPage; more.disabled = false;
     }
-    $("moreBtn").addEventListener("click", () => { if(vodState) loadVods(vodState.type, vodState.page + 1); });
-    tabs($("tabs"), (D.categories || []).concat(Object.keys(AUTO)), cat => {
-      $("list").classList.toggle("catch-grid", cat === "캐치");
+    more.addEventListener("click", () => { if(vodState) loadVods(vodState.type, vodState.page + 1); });
+
+    async function showYT(){
+      list.className = "cards"; more.hidden = true; list.innerHTML = '<p class="empty">불러오는 중…</p>';
+      const d = await getYT();
+      $("sampleChip").innerHTML = d ? '<span class="chip leaf">유튜브 자동</span>' : "";
+      list.innerHTML = d ? (d.items.map(ytCard).join("") || '<p class="empty">영상이 없어요</p>') : offline("유튜브 영상");
+    }
+
+    tabs($("tabs"), ownCats.concat(Object.keys(AUTO)), cat => {
+      vodState = null;
+      if(!cat) return showAll();
+      if(AUTO[cat] === "yt") return showYT();
       if(AUTO[cat]) return loadVods(AUTO[cat], 1);
-      vodState = null; $("moreBtn").hidden = true;
-      $("sampleChip").innerHTML = sampleChip(D.sample);
-      const list = D.items.filter(x => !cat || x.category === cat);
-      $("list").innerHTML = list.length ? list.map((v, i) => {
-        const thumb = v.image ? asset(v.image) : (v.youtube ? "https://i.ytimg.com/vi/" + encodeURIComponent(v.youtube) + "/mqdefault.jpg" : "");
-        const style = thumb ? 'background-image:url(&quot;' + esc(thumb) + '&quot;)' : "background-color:" + TINTS[i % 4];
-        const inner = '<div class="thumb" style="' + style + '"><span class="kind">' + esc(v.category) + '</span>' + (thumb ? "" : pc(v.icon || 6))
-          + (v.youtube ? '<span class="play"><svg class="ico"><use href="#i-play"/></svg></span>' : "") + '</div>'
-          + '<div class="c-text">' + esc(v.title) + '<small>' + esc(v.date || "") + '</small></div>';
-        if(v.youtube) return '<a class="card" href="https://www.youtube.com/watch?v=' + encodeURIComponent(v.youtube) + '" target="_blank" rel="noopener">' + inner + '</a>';
-        if(v.image) return '<a class="card" href="' + esc(asset(v.image)) + '" target="_blank" rel="noopener">' + inner + '</a>';
-        return '<div class="card">' + inner + '</div>';
-      }).join("") : '<p class="empty">등록된 자료가 없어요</p>';
+      list.className = "cards"; more.hidden = true; $("sampleChip").innerHTML = "";
+      const items = own.filter(x => x.category === cat);
+      list.innerHTML = items.length ? items.map(ownCard).join("") : '<p class="empty">등록된 자료가 없어요</p>';
     });
   }
 
