@@ -45,17 +45,17 @@ window.SITE = {
 
   // 구독 퍼스나콘 12단계 이름과 개월 수 (label은 화면에 작게 표시)
   persona: [
-    { name: "씨앗",          label: "1단계" },
-    { name: "새싹",          label: "2단계" },
-    { name: "꽃",            label: "3단계" },
-    { name: "풋체리",        label: "4단계" },
-    { name: "주황 체리",     label: "5단계" },
-    { name: "분홍 체리",     label: "6단계" },
-    { name: "쌍둥이 체리",   label: "7단계" },
-    { name: "리본 체리",     label: "8단계" },
-    { name: "체리 아이스크림", label: "9단계" },
-    { name: "체리 케이크",   label: "10단계" },
-    { name: "체리 파르페",   label: "11단계" },
-    { name: "체리 선데",     label: "12단계" }
+    { name: "씨앗",          label: "1개월" },
+    { name: "새싹",          label: "2개월" },
+    { name: "꽃",            label: "3개월" },
+    { name: "풋체리",        label: "4개월" },
+    { name: "주황 체리",     label: "5개월" },
+    { name: "분홍 체리",     label: "6개월" },
+    { name: "쌍둥이 체리",   label: "7개월" },
+    { name: "리본 체리",     label: "8개월" },
+    { name: "체리 아이스크림", label: "9개월" },
+    { name: "체리 케이크",   label: "10개월" },
+    { name: "체리 파르페",   label: "11개월" },
+    { name: "체리 선데",     label: "12개월" }
   ]
 };
