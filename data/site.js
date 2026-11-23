@@ -7,7 +7,7 @@ window.SITE = {
   siteName: "마루네",            // 한글 사이트 이름
   wordmark: "마루네",          // 상단과 메인에 크게 나오는 이름
   streamer: "마루º",               // 스트리머 닉네임
-  tagline: "씨앗에서 황금 체리까지, 마루와 함께 자라는 곳",
+  tagline: "씨앗에서 체리 선데까지, 마루와 함께 자라는 곳",
 
   // 링크: 비워 두면("") 해당 버튼이 숨겨집니다
   soopId: "mang0707",             // SOOP 방송국 아이디
@@ -45,17 +45,17 @@ window.SITE = {
 
   // 구독 퍼스나콘 12단계 이름과 개월 수 (label은 화면에 작게 표시)
   persona: [
-    { name: "씨앗",        label: "1단계" },
-    { name: "새싹",        label: "2단계" },
-    { name: "꽃",          label: "3단계" },
-    { name: "풋체리",      label: "4단계" },
-    { name: "주황 체리",   label: "5단계" },
-    { name: "빨간 체리",   label: "6단계" },
-    { name: "쌍둥이 체리", label: "7단계" },
-    { name: "익은 체리",   label: "8단계" },
-    { name: "세쌍둥이",    label: "9단계" },
-    { name: "체리 케이크", label: "10단계" },
-    { name: "체리 파르페", label: "11단계" },
-    { name: "황금 체리",   label: "12단계" }
+    { name: "씨앗",          label: "1단계" },
+    { name: "새싹",          label: "2단계" },
+    { name: "꽃",            label: "3단계" },
+    { name: "풋체리",        label: "4단계" },
+    { name: "주황 체리",     label: "5단계" },
+    { name: "분홍 체리",     label: "6단계" },
+    { name: "쌍둥이 체리",   label: "7단계" },
+    { name: "리본 체리",     label: "8단계" },
+    { name: "체리 아이스크림", label: "9단계" },
+    { name: "체리 케이크",   label: "10단계" },
+    { name: "체리 파르페",   label: "11단계" },
+    { name: "체리 선데",     label: "12단계" }
   ]
 };

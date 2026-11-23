@@ -41,7 +41,7 @@ window.SIGS = {
     { count: 1000, name: "쌍둥이 체리", desc: "노래 한 소절",          category: "갠방", icon: 7,  image: "" },
     { count: 2000, name: "케이크 타임", desc: "풀버전 리액션",         category: "엑셀", icon: 10, image: "" },
     { count: 3000, name: "파르페",      desc: "댄스 풀버전",           category: "엑셀", icon: 11, image: "" },
-    { count: 5000, name: "황금 체리",   desc: "스페셜 리액션",         category: "엑셀", icon: 12, image: "" }
+    { count: 5000, name: "체리 선데",   desc: "스페셜 리액션",         category: "엑셀", icon: 12, image: "" }
   ]
 };
 

@@ -1,4 +1,4 @@
-/* 체리 2048: 같은 단계 두 개가 만나면 다음 단계. 12단계(황금 체리)가 목표 */
+/* 체리 2048: 같은 단계 두 개가 만나면 다음 단계. 12단계(체리 선데)가 목표 */
 (function(){
   const { S, pc, pcSrc, toast } = window.CM, K = window.GameKit;
   const $ = id => document.getElementById(id);
@@ -59,7 +59,7 @@
     }
     if(!moved) return;
     spawn();
-    if(!won && grid.some(v => v >= MAX)){ won = true; toast("황금 체리 완성! 계속 할 수 있어요"); }
+    if(!won && grid.some(v => v >= MAX)){ won = true; toast("체리 선데 완성! 계속 할 수 있어요"); }
     if(!canMove()){ over = true; finish(); }
     render();
   }

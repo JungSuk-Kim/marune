@@ -17,7 +17,7 @@
         { id: 1, category: "notice", title: "마루네 게시판을 열었어요", body: "공지사항, 자유게시판, 마루 일기장이 있어요.\n서로 존중하는 말로 써 주세요. 욕설과 광고 글은 삭제돼요.", author: "운영자", role: "admin", uid: "admin", createdAt: now - 80 * H, views: 142, likes: 9 },
         { id: 2, category: "notice", title: "게시판 이용 규칙", body: "1. 다른 사람을 비난하는 글은 쓰지 않아요.\n2. 개인정보를 올리지 않아요.\n3. 같은 글을 반복해서 올리지 않아요.", author: "운영자", role: "admin", uid: "admin", createdAt: now - 78 * H, views: 96, likes: 4 },
         { id: 3, category: "diary", title: "오늘 방송 끝! 다들 고마워요", body: "오늘도 와 줘서 고마워요.\n내일은 조금 일찍 켤게요.", author: S.streamer || "스트리머", role: "streamer", uid: "streamer", createdAt: now - 30 * H, views: 211, likes: 27 },
-        { id: 4, category: "free", title: "체리 2048 황금 체리 만든 사람 있나요", body: "10단계 케이크까지는 갔는데 그다음이 안 돼요.", author: "새벽체리", role: "member", uid: "u1", createdAt: now - 26 * H, views: 34, likes: 3 },
+        { id: 4, category: "free", title: "체리 2048 체리 선데 만든 사람 있나요", body: "10단계 케이크까지는 갔는데 그다음이 안 돼요.", author: "새벽체리", role: "member", uid: "u1", createdAt: now - 26 * H, views: 34, likes: 3 },
         { id: 5, category: "free", title: "어제 방송 노래 제목 아시는 분", body: "중간에 부른 발라드 제목이 궁금해요.", author: "분홍우산", role: "member", uid: "u2", createdAt: now - 20 * H, views: 18, likes: 1 },
         { id: 6, category: "diary", title: "이번 주 일정 올렸어요", body: "메인 화면 일정표를 확인해 주세요.\n목요일은 쉬어요.", author: S.streamer || "스트리머", role: "streamer", uid: "streamer", createdAt: now - 9 * H, views: 88, likes: 12 },
         { id: 7, category: "free", title: "체리 계단 62칸 찍었습니다", body: "방향 바꾸기가 연속으로 나오면 정신없네요.", author: "번개손", role: "member", uid: "u3", createdAt: now - 5 * H, views: 21, likes: 5 },
