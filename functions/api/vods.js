@@ -1,5 +1,5 @@
 /* 방송국 캐치·클립: SOOP 방송국 VOD 목록을 읽어 옵니다.
-   /api/vods?type=catch|clip&page=1&size=12
+   /api/vods?type=catch|clip&page=1&size=12&sort=latest|views
    전체 이용가이고 유료가 아닌 영상만 돌려줍니다. Cloudflare 환경 변수 SOOP_ID 를 넣으면 그 아이디가 우선합니다. */
 const DEFAULT_SOOP_ID = "mang0707";
 
@@ -34,11 +34,12 @@ export async function onRequestGet({ env, request }){
   const type = u.searchParams.get("type") === "catch" ? "catch" : "clip";
   const page = Math.max(1, Math.min(200, parseInt(u.searchParams.get("page"), 10) || 1));
   const size = Math.max(1, Math.min(20, parseInt(u.searchParams.get("size"), 10) || 12));
+  const sort = u.searchParams.get("sort") === "views" ? "views" : "latest";
   /* SOOP 은 한 번에 20·60개 단위로만 주므로 20개씩 받아 필요한 만큼 자름 */
   const per = 20;
   const start = (page - 1) * size, srcPage = Math.floor(start / per) + 1, offset = start % per;
   const api = n => "https://api-channel.sooplive.com/v1.3/channel/" + id + "/vod/" + type
-    + "?startDate=&endDate=&keyword=&orderBy=reg_date&perPage=" + per + "&page=" + n + "&field=title,contents,user_nick,user_id";
+    + "?startDate=&endDate=&keyword=&orderBy=" + (sort === "views" ? "read_cnt" : "reg_date") + "&perPage=" + per + "&page=" + n + "&field=title,contents,user_nick,user_id";
   const headers = { "user-agent": "Mozilla/5.0", "accept": "application/json", "origin": "https://www.sooplive.com", "referer": "https://www.sooplive.com/station/" + id + "/vod/" + type };
   try{
     const get = async n => {
@@ -57,7 +58,7 @@ export async function onRequestGet({ env, request }){
       .filter(v => v && v.ucc && !v.ucc.paidPpv && !(v.ucc.grade > 0) && v.ucc.flag === "SUCCEED")
       .map(v => mapVod(v, type));
     const total = meta.totalItems || items.length;
-    return json({ ok: true, type, items, total, page, lastPage: Math.max(1, Math.ceil(total / size)) }, 300);
+    return json({ ok: true, type, sort, items, total, page, lastPage: Math.max(1, Math.ceil(total / size)) }, 300);
   }catch(e){
     return json({ ok: false, reason: e.message || "SOOP 응답 없음" }, 60);
   }

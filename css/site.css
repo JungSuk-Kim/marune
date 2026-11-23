@@ -672,3 +672,5 @@ a.post-row.soop-row:hover{background:#eaf7ef}
   .pp-grid{--cols:6!important;gap:4px}
   .pp-title{font-size:28px}
 }
+.sec-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.seg[hidden]{display:none}

@@ -112,9 +112,9 @@
       + '<span class="len num">' + dur(v.duration || 0) + '</span></div>'
       + '<div class="c-text"><span class="t2">' + esc(v.title) + '</span><small>' + esc(v.author) + ' · 조회 ' + Number(v.views || 0).toLocaleString() + '</small></div></a>';
   }
-  function fetchVods(type, page, size){
+  function fetchVods(type, page, size, sort){
     if(!location.protocol.startsWith("http")) return Promise.resolve(null);
-    return fetch(url("api/vods?type=" + type + "&page=" + page + "&size=" + size), { cache: "no-store" })
+    return fetch(url("api/vods?type=" + type + "&page=" + page + "&size=" + size + (sort === "views" ? "&sort=views" : "")), { cache: "no-store" })
       .then(r => r.ok ? r.json() : null).then(d => d && d.ok ? d : null).catch(() => null);
   }
 

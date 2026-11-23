@@ -40,8 +40,15 @@
     const AUTO = { "유튜브": "yt", "캐치": "catch", "클립": "clip" };
     const live = location.protocol.startsWith("http");
     const TINTS = ["#fbe3e9", "#fdebd6", "#e2f1e6", "#ece6f8"];
-    const list = $("list"), more = $("moreBtn");
-    let vodState = null;
+    const list = $("list"), more = $("moreBtn"), sortBox = $("vodSort");
+    let vodState = null, vodSort = window.CM.store.get("vod-sort", "latest");
+    const markSort = () => sortBox.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.s === vodSort)));
+    markSort();
+    sortBox.addEventListener("click", e => {
+      const b = e.target.closest("[data-s]"); if(!b || b.dataset.s === vodSort) return;
+      vodSort = b.dataset.s; window.CM.store.set("vod-sort", vodSort); markSort();
+      if(vodState) loadVods(vodState.type, 1);
+    });
 
     function ownCard(v, i){
       const thumb = v.image ? asset(v.image) : (v.youtube ? "https://i.ytimg.com/vi/" + encodeURIComponent(v.youtube) + "/mqdefault.jpg" : "");
@@ -84,7 +91,7 @@
       list.className = "cards" + (type === "catch" ? " catch-grid" : "");
       if(page === 1) list.innerHTML = '<p class="empty">불러오는 중…</p>';
       more.disabled = true;
-      const d = await fetchVods(type, page, 12);
+      const d = await fetchVods(type, page, 12, vodSort);
       if(page === 1) list.innerHTML = "";
       if(!d){ list.innerHTML = offline("방송국 " + (type === "catch" ? "캐치" : "클립") + " 영상"); more.hidden = true; return; }
       list.insertAdjacentHTML("beforeend", d.items.map(vodCard).join("") || (page === 1 ? '<p class="empty">영상이 없어요</p>' : ""));
@@ -102,7 +109,7 @@
     }
 
     tabs($("tabs"), ownCats.concat(Object.keys(AUTO)), cat => {
-      vodState = null;
+      vodState = null; sortBox.hidden = !(AUTO[cat] === "catch" || AUTO[cat] === "clip");
       if(!cat) return showAll();
       if(AUTO[cat] === "yt") return showYT();
       if(AUTO[cat]) return loadVods(AUTO[cat], 1);
