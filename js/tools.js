@@ -97,9 +97,21 @@
   let drawN = 1, drawing = false;
   drawInput.value = store.get("tool-draw", "");
   const uniq = () => Array.from(new Set(lines(drawInput.value)));
-  const info = () => { const n = uniq().length; $("drawInfo").textContent = n ? n + "명" : ""; };
+  let drawMode = store.get("tool-draw-mode", "num");
+  const maxN = () => Math.max(2, Math.min(100, Math.round(Number($("drawMax").value) || 45)));
+  /* 지금 방식의 추첨 대상: 번호 목록과(닉네임 방식이면) 이름 */
+  const pool = () => drawMode === "num" ? { nums: Array.from({ length: maxN() }, (_, i) => i + 1), names: null }
+    : (n => ({ nums: n.map((_, i) => i + 1), names: n }))(uniq());
+  const info = () => { const n = pool().nums.length; $("drawInfo").textContent = n ? (drawMode === "num" ? "공 " + n + "개" : n + "명") : ""; };
   drawInput.addEventListener("input", () => { store.set("tool-draw", drawInput.value); info(); });
-  info();
+  $("drawMax").value = store.get("tool-draw-max", 45);
+  function setMode(m){
+    drawMode = m; store.set("tool-draw-mode", m);
+    $("drawMode").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.m === m)));
+    $("drawNumBox").hidden = m !== "num"; drawInput.hidden = m === "num";
+    info(); if(typeof makeBalls === "function" && !drawing) makeBalls();
+  }
+  $("drawMode").addEventListener("click", e => { const b = e.target.closest("[data-m]"); if(b) setMode(b.dataset.m); });
   function seg(id, set){
     $(id).addEventListener("click", e => {
       const b = e.target.closest("button"); if(!b) return;
@@ -112,15 +124,15 @@
   const LC = $("lotto"), lx = LC.getContext("2d");
   const GROUP = [["#ffc928", "#b47d00"], ["#5ab8f0", "#1d6fa3"], ["#ff6b6b", "#b3262f"], ["#a9a7b8", "#5c5a6e"], ["#9fd34a", "#4f7d13"]];
   const colOf = num => GROUP[Math.floor((num - 1) / 10) % 5];
-  const CX = 280, CY = 318, DR = 210, BR = 22;
+  const CX = 280, CY = 318, DR = 210, TB = 22; let BR = 22;
   const RAILX = 648, RAILTOP = 92, RAILBOT = 566;
   const TUBE = [[CX, CY - DR + 6], [CX, 40], [RAILX - 30, 40], [RAILX, 70], [RAILX, RAILBOT]];
-  let balls = [], rail = [], mixing = 0, lspin = 0, moving = null, lastT = 0, roster = [];
+  let balls = [], rail = [], mixing = 0, lspin = 0, moving = null, lastT = 0;
   function makeBalls(){
-    roster = uniq();
-    const nums = roster.length ? roster.map((_, i) => i + 1) : Array.from({ length: 30 }, (_, i) => i + 1);
-    const pick = nums.length > 45 ? nums.slice().sort(() => Math.random() - .5).slice(0, 45) : nums;
-    balls = pick.map(num => {
+    const P = pool();
+    const nums = P.nums.length ? P.nums : Array.from({ length: 30 }, (_, i) => i + 1);
+    BR = nums.length > 70 ? 15 : nums.length > 45 ? 18 : 22;
+    balls = nums.map(num => {
       const a = Math.random() * Math.PI, d = Math.random() * (DR - BR - 30);
       return { x: CX + Math.cos(a) * d, y: CY + Math.sin(a) * d * .9 + 20, vx: 0, vy: 0, num };
     });
@@ -175,9 +187,9 @@
     lx.clearRect(0, 0, W, H);
     /* 관 (구슬통 위에서 오른쪽 레일까지) */
     lx.lineCap = "round"; lx.lineJoin = "round";
-    tubePath(); lx.strokeStyle = "rgba(255,255,255,.26)"; lx.lineWidth = BR * 2 + 14; lx.stroke();
-    lx.save(); lx.globalCompositeOperation = "destination-out"; tubePath(); lx.lineWidth = BR * 2 + 8; lx.stroke(); lx.restore();
-    tubePath(); lx.strokeStyle = "rgba(255,255,255,.07)"; lx.lineWidth = BR * 2 + 8; lx.stroke();
+    tubePath(); lx.strokeStyle = "rgba(255,255,255,.26)"; lx.lineWidth = TB * 2 + 14; lx.stroke();
+    lx.save(); lx.globalCompositeOperation = "destination-out"; tubePath(); lx.lineWidth = TB * 2 + 8; lx.stroke(); lx.restore();
+    tubePath(); lx.strokeStyle = "rgba(255,255,255,.07)"; lx.lineWidth = TB * 2 + 8; lx.stroke();
     tubePath(); lx.strokeStyle = "rgba(255,255,255,.35)"; lx.lineWidth = 2; lx.setLineDash([]); lx.save(); lx.translate(-BR + 2, 0); lx.restore();
     /* 레일 받침 */
     lx.fillStyle = chrome(RAILX - 40, RAILX + 40); roundRect(RAILX - 40, RAILBOT + 18, 80, 16, 8); lx.fill();
@@ -210,8 +222,8 @@
     lx.fillStyle = chrome(CX - 44, CX + 44); roundRect(CX - 40, CY - DR - 10, 80, 22, 8); lx.fill();
     lx.fillStyle = chrome(CX - 54, CX + 54); roundRect(CX - 50, CY + DR - 14, 100, 24, 10); lx.fill();
     /* 레일에 쌓인 공 */
-    rail.forEach(r => ball(RAILX, r.y, BR, r.num));
-    if(moving) ball(moving.x, moving.y, BR, moving.num);
+    rail.forEach(r => ball(RAILX, r.y, TB, r.num));
+    if(moving) ball(moving.x, moving.y, moving.r, moving.num);
   }
   function roundRect(x, y, w, h, r){ lx.beginPath(); lx.moveTo(x + r, y); lx.arcTo(x + w, y, x + w, y + h, r); lx.arcTo(x + w, y + h, x, y + h, r); lx.arcTo(x, y + h, x, y, r); lx.arcTo(x, y, x + w, y, r); lx.closePath(); }
   function loop(t){
@@ -240,7 +252,7 @@
   const reveal = $("lottoReveal");
   function showReveal(num, name){
     const [c, d] = colOf(num);
-    reveal.innerHTML = '<div class="lr-card"><span class="lball" style="--c:' + c + ';--d:' + d + '"><b>' + num + '</b></span><span class="lr-name">' + esc(name) + '</span></div>';
+    reveal.innerHTML = '<div class="lr-card"><span class="lball" style="--c:' + c + ';--d:' + d + '"><b>' + num + '</b></span>' + (name ? '<span class="lr-name">' + esc(name) + '</span>' : '') + '</div>';
     reveal.classList.add("on");
   }
   let rebuildT;
@@ -248,10 +260,10 @@
 
   $("drawBtn").addEventListener("click", async () => {
     if(drawing) return;
-    const names = uniq();
-    if(!names.length) return toast("참여자 닉네임을 넣어 주세요");
-    if(drawN > names.length) return toast("뽑을 사람 수가 참여자보다 많아요");
-    const idx = names.map((_, i) => i);
+    const P = pool(), names = P.names;
+    if(!P.nums.length) return toast("참여자 닉네임을 넣어 주세요");
+    if(drawN > P.nums.length) return toast(names ? "뽑을 사람 수가 참여자보다 많아요" : "공 개수보다 많이 뽑을 수 없어요");
+    const idx = P.nums.map((_, i) => i);
     for(let i = idx.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
     const win = idx.slice(0, drawN);
     drawing = true; $("drawResult").innerHTML = ""; $("drawBtn").disabled = true; reveal.classList.remove("on");
@@ -265,16 +277,16 @@
       let b = balls.find(x => x.num === num);
       if(!b){ b = balls.reduce((best, x) => Math.hypot(x.x - top[0], x.y - top[1]) < Math.hypot(best.x - top[0], best.y - top[1]) ? x : best, balls[0]); b.num = num; }
       balls = balls.filter(x => x !== b);
-      moving = { x: b.x, y: b.y, num };
-      const slotY = RAILBOT - BR - 4 - rail.length * (BR * 2 + 6);
-      await along([[b.x, b.y], [CX, CY - DR + 10], [CX, 70], [CX + 9, 49], [CX + 30, 40], [RAILX - 30, 40], [RAILX - 9, 49], [RAILX, 70], [RAILX, slotY]], reduce ? 6000 : 1500, (x, y) => { moving.x = x; moving.y = y; });
+      moving = { x: b.x, y: b.y, num, r: BR };
+      const slotY = RAILBOT - TB - 4 - rail.length * (TB * 2 + 6), r0 = BR;
+      await along([[b.x, b.y], [CX, CY - DR + 10], [CX, 70], [CX + 9, 49], [CX + 30, 40], [RAILX - 30, 40], [RAILX - 9, 49], [RAILX, 70], [RAILX, slotY]], reduce ? 6000 : 1500, (x, y) => { moving.x = x; moving.y = y; moving.r = Math.min(TB, moving.r + .25); });
       rail.push({ num, y: slotY }); moving = null;
       const st = $("lottoStage"), rc = LC.getBoundingClientRect(), sr = st.getBoundingClientRect(), sc = rc.width / LC.width;
       K.burst(st, rc.left - sr.left + RAILX * sc, rc.top - sr.top + slotY * sc, [colOf(num)[0], "#ffd166", "#fff"], 12);
-      showReveal(num, names[win[w]]);
+      showReveal(num, names ? names[win[w]] : null);
       const [c, d] = colOf(num);
       const tag = document.createElement("span"); tag.style.setProperty("--c", c); tag.style.setProperty("--d", d);
-      tag.innerHTML = '<i>' + num + '</i>' + esc(names[win[w]]); $("drawResult").appendChild(tag);
+      tag.innerHTML = '<i>' + num + '</i>' + (names ? esc(names[win[w]]) : num + "번"); $("drawResult").appendChild(tag);
       await wait(reduce ? 300 : 1500);
       if(w < win.length - 1) reveal.classList.remove("on");
     }
@@ -282,7 +294,10 @@
     drawing = false; $("drawBtn").disabled = false;
   });
   reveal.addEventListener("click", () => reveal.classList.remove("on"));
-  makeBalls(); requestAnimationFrame(loop);
+  const applyMax = () => { const v = maxN(); $("drawMax").value = v; store.set("tool-draw-max", v); info(); if(!drawing) makeBalls(); };
+  $("drawMax").addEventListener("change", applyMax);
+  $("drawQuick").addEventListener("click", e => { const b = e.target.closest("[data-v]"); if(b){ $("drawMax").value = b.dataset.v; applyMax(); } });
+  setMode(drawMode); requestAnimationFrame(loop);
 
   /* ───────── 주사위 ───────── */
   const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
