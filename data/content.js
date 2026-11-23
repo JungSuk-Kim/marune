@@ -52,7 +52,6 @@ window.ARCHIVE = {
   sample: true,
   categories: ["프로필", "짤", "영상"],
   items: [
-    { title: "프로필 사진",            category: "프로필", icon: 6,  image: "assets/hero-photo.jpg", youtube: "", date: "" },
     { title: "방송 배너 자리",         category: "프로필", icon: 7,  image: "", youtube: "", date: "" },
     { title: "웃긴 순간 모음",         category: "짤",     icon: 3,  image: "", youtube: "", date: "" },
     { title: "오늘의 표정",            category: "짤",     icon: 5,  image: "", youtube: "", date: "" },
