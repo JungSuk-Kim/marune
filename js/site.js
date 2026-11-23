@@ -91,5 +91,21 @@
   /* 설정값을 글자로 넣는 자리 */
   document.querySelectorAll("[data-cfg]").forEach(el => { el.textContent = S[el.dataset.cfg] || ""; });
 
-  window.CM = { ROOT, S, esc, url, pc, pcSrc, ico, asset, store, toast, sampleChip };
+  /* ── SOOP 캐치·클립 (서버 함수 /api/vods) ── */
+  const dur = s => Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+  function vodCard(v){
+    const catchType = v.type === "catch";
+    const img = catchType ? (v.vthumb || v.thumb) : v.thumb;
+    return '<a class="card vod' + (catchType ? " catch" : "") + '" href="' + esc(v.url) + '" target="_blank" rel="noopener">'
+      + '<div class="thumb" style="background-image:url(&quot;' + esc(img) + '&quot;)"><span class="kind">' + (catchType ? "캐치" : "클립") + '</span>'
+      + '<span class="len num">' + dur(v.duration || 0) + '</span></div>'
+      + '<div class="c-text"><span class="t2">' + esc(v.title) + '</span><small>' + esc(v.author) + ' · 조회 ' + Number(v.views || 0).toLocaleString() + '</small></div></a>';
+  }
+  function fetchVods(type, page, size){
+    if(!location.protocol.startsWith("http")) return Promise.resolve(null);
+    return fetch(url("api/vods?type=" + type + "&page=" + page + "&size=" + size), { cache: "no-store" })
+      .then(r => r.ok ? r.json() : null).then(d => d && d.ok ? d : null).catch(() => null);
+  }
+
+  window.CM = { ROOT, S, esc, url, pc, pcSrc, ico, asset, store, toast, sampleChip, vodCard, fetchVods };
 })();

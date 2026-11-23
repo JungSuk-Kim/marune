@@ -1,6 +1,6 @@
 /* 메인 화면 */
 (function(){
-  const { S, esc, url, pc, ico, asset, sampleChip, toast } = window.CM;
+  const { S, esc, url, pc, ico, asset, sampleChip, toast, vodCard, fetchVods } = window.CM;
   const $ = id => document.getElementById(id);
 
   /* ── 히어로 ── */
@@ -62,21 +62,29 @@
       ? '<a class="card" href="https://www.youtube.com/watch?v=' + encodeURIComponent(v.youtube) + '" target="_blank" rel="noopener">' + inner + '</a>'
       : '<a class="card" href="' + url("archive.html") + '">' + inner + '</a>';
   }
-  function renderVideos(list, auto, sample){
-    /* 예시 영상만 있을 때는 칸을 숨김 (유튜브가 연결되거나 실제 영상을 넣으면 나타남) */
-    if(!list.length || sample){ $("videoBand").hidden = true; return; }
-    $("videoBand").hidden = false;
-    $("videoChips").innerHTML = (auto ? '<span class="chip">자동 업데이트</span>' : "") + sampleChip(sample);
-    $("videos").innerHTML = list.slice(0, 4).map(videoCard).join("");
-  }
-  const A = window.ARCHIVE || { items: [] };
-  renderVideos(A.items.filter(x => x.category === "영상"), false, A.sample);
-  if(location.protocol.startsWith("http")){
-    getJSON("api/youtube").then(d => {
-      if(d && d.ok && d.items && d.items.length){
-        renderVideos(d.items.map(x => ({ title: x.title, youtube: x.id, date: ago(x.published) })), true, false);
+  /* 영상 칸: 유튜브 · 캐치 · 클립 탭. 배포 전(파일로 열 때)에는 칸을 숨김 */
+  const V = { yt: null, catch: null, clip: null };
+  const more = { yt: S.youtubeUrl, catch: url("archive.html"), clip: url("archive.html") };
+  async function showVideos(kind){
+    $("videoTabs").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === kind));
+    $("videos").classList.toggle("catch-grid", kind === "catch");
+    if(!V[kind]){
+      $("videos").innerHTML = '<p class="empty">불러오는 중…</p>';
+      if(kind === "yt"){
+        const d = await getJSON("api/youtube");
+        V.yt = d && d.ok ? d.items.slice(0, 4).map(x => videoCard({ title: x.title, youtube: x.id, date: ago(x.published) }, 0)) : [];
+      } else {
+        const d = await fetchVods(kind, 1, kind === "catch" ? 6 : 4);
+        V[kind] = d ? d.items.map(vodCard) : [];
       }
-    });
+    }
+    $("videos").innerHTML = V[kind].join("") || '<p class="empty">아직 영상이 없어요</p>';
+  }
+  if(location.protocol.startsWith("http")){
+    $("videoTabs").addEventListener("click", e => { const b = e.target.closest("button"); if(b) showVideos(b.dataset.v); });
+    showVideos("yt");
+  } else {
+    $("videoBand").hidden = true;
   }
 
   /* ── 방송국 최신 글 (SOOP) + 게시판 최근 글 ── */

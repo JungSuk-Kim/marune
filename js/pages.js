@@ -1,6 +1,6 @@
 /* 시그 · 자료실 · 공약현황 · 놀이터 목록 페이지 */
 (function(){
-  const { esc, url, pc, ico, asset, sampleChip } = window.CM;
+  const { esc, url, pc, ico, asset, sampleChip, vodCard, fetchVods, S } = window.CM;
   const page = document.body.dataset.page;
   const $ = id => document.getElementById(id);
 
@@ -36,7 +36,29 @@
     const D = window.ARCHIVE || { items: [], categories: [] };
     $("sampleChip").innerHTML = sampleChip(D.sample);
     const TINTS = ["#fbe3e9", "#fdebd6", "#e2f1e6", "#ece6f8"];
-    tabs($("tabs"), D.categories || [], cat => {
+    const AUTO = { "캐치": "catch", "클립": "clip" };
+    let vodState = null;
+    async function loadVods(type, page){
+      const more = $("moreBtn");
+      if(page === 1){ $("list").innerHTML = '<p class="empty">불러오는 중…</p>'; }
+      more.disabled = true;
+      const d = await fetchVods(type, page, 12);
+      if(page === 1) $("list").innerHTML = "";
+      if(!d){
+        $("list").innerHTML = '<p class="empty">' + (location.protocol.startsWith("http") ? "영상을 불러오지 못했어요. 잠시 뒤 다시 열어 주세요." : "사이트를 배포한 뒤에 " + esc(S.streamer) + " 방송국 " + (type === "catch" ? "캐치" : "클립") + " 영상이 여기에 보여요.") + '</p>';
+        more.hidden = true; return;
+      }
+      $("list").insertAdjacentHTML("beforeend", d.items.map(vodCard).join("") || (page === 1 ? '<p class="empty">영상이 없어요</p>' : ""));
+      $("sampleChip").innerHTML = '<span class="chip leaf">SOOP 자동 · ' + d.total + '개</span>';
+      vodState = { type, page, last: d.lastPage };
+      more.hidden = page >= d.lastPage; more.disabled = false;
+    }
+    $("moreBtn").addEventListener("click", () => { if(vodState) loadVods(vodState.type, vodState.page + 1); });
+    tabs($("tabs"), (D.categories || []).concat(Object.keys(AUTO)), cat => {
+      $("list").classList.toggle("catch-grid", cat === "캐치");
+      if(AUTO[cat]) return loadVods(AUTO[cat], 1);
+      vodState = null; $("moreBtn").hidden = true;
+      $("sampleChip").innerHTML = sampleChip(D.sample);
       const list = D.items.filter(x => !cat || x.category === cat);
       $("list").innerHTML = list.length ? list.map((v, i) => {
         const thumb = v.image ? asset(v.image) : (v.youtube ? "https://i.ytimg.com/vi/" + encodeURIComponent(v.youtube) + "/mqdefault.jpg" : "");
