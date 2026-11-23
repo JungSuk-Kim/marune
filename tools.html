@@ -21,27 +21,37 @@
     <p>방송 중에 화면에 띄워 놓고 쓰는 룰렛, 추첨, 주사위예요. 적어 둔 내용은 이 기기에 저장돼요.</p>
   </div></div>
 
-  <section class="band"><div class="wrap two tool-grid">
-    <div class="panel">
-      <div class="panel-head"><h2 class="sec-title">룰렛</h2><button type="button" class="btn cherry" id="spinBtn">돌리기</button></div>
-      <div class="panel-body" style="padding-top:20px">
-        <div class="wheel-wrap"><span class="wheel-pin"></span><canvas id="wheel" width="640" height="640" aria-label="룰렛"></canvas></div>
-        <p class="result" id="wheelResult" aria-live="polite"></p>
-        <div class="form-row"><label for="wheelItems">항목 (한 줄에 하나)</label><textarea class="field" id="wheelItems" style="min-height:130px"></textarea></div>
-      </div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:20px">
-      <div class="panel">
-        <div class="panel-head"><h2 class="sec-title">추첨</h2><span class="board-tools"><input class="field num" id="drawCount" type="number" min="1" max="20" value="1" style="width:64px" aria-label="뽑을 사람 수"><span class="sec-sub">명</span><button type="button" class="btn cherry" id="drawBtn">뽑기</button></span></div>
-        <div class="panel-body" style="padding-top:16px">
-          <div class="form-row"><label for="drawNames">참여자 (한 줄에 한 명, 같은 이름은 한 번만 계산)</label><textarea class="field" id="drawNames" style="min-height:130px" placeholder="닉네임을 붙여 넣으세요"></textarea></div>
-          <p class="sec-sub" id="drawInfo" style="text-align:center"></p>
-          <div class="picked" id="drawResult" aria-live="polite"></div>
+  <section class="band"><div class="wrap bare tool-grid">
+    <div class="tool-card t-wheel">
+      <div class="t-head"><h2>룰렛</h2><span class="sec-sub" id="wheelCount"></span></div>
+      <div class="wheel-stage" id="wheelStage">
+        <div class="wheel-wrap">
+          <svg class="wheel-pin" viewBox="0 0 40 52" aria-hidden="true"><path d="M20 50C20 50 4 30 4 18a16 16 0 0 1 32 0c0 12-16 32-16 32z" fill="#e4487e" stroke="#fff" stroke-width="3"/><circle cx="20" cy="18" r="6" fill="#fff"/></svg>
+          <canvas id="wheel" width="720" height="720" aria-label="룰렛"></canvas>
+          <button type="button" class="wheel-hub" id="spinBtn" aria-label="룰렛 돌리기">돌려!</button>
         </div>
+        <div class="tool-result" id="wheelResult" hidden><small>당첨</small><b id="wheelResultText"></b><button type="button" class="btn light" id="wheelAgain">다시 돌리기</button></div>
       </div>
-      <div class="panel">
-        <div class="panel-head"><h2 class="sec-title">주사위</h2><span class="board-tools"><select class="field" id="diceCount" aria-label="주사위 개수"><option value="1">1개</option><option value="2">2개</option><option value="3">3개</option></select><button type="button" class="btn cherry" id="rollBtn">굴리기</button></span></div>
-        <div class="panel-body" style="padding-top:20px"><div class="dice" id="dice"></div><p class="result num" id="diceResult" aria-live="polite"></p></div>
+      <form class="chip-editor" id="wheelForm">
+        <div class="chips" id="wheelChips"></div>
+        <div class="chip-add"><input class="field" id="wheelInput" maxlength="20" placeholder="항목 추가 (예: 노래 한 곡)" aria-label="룰렛 항목 추가"><button type="submit" class="btn">추가</button></div>
+      </form>
+    </div>
+    <div class="tool-col">
+      <div class="tool-card t-draw">
+        <div class="t-head"><h2>추첨</h2>
+          <div class="seg" id="drawSeg" role="group" aria-label="뽑을 사람 수"><button type="button" data-n="1" aria-pressed="true">1명</button><button type="button" data-n="2">2명</button><button type="button" data-n="3">3명</button><button type="button" data-n="5">5명</button></div></div>
+        <div class="slot" id="drawSlot"><span id="drawSlotText">누가 뽑힐까요?</span></div>
+        <div class="picked" id="drawResult" aria-live="polite"></div>
+        <label class="mini-label" for="drawNames">참여자 <span id="drawInfo" class="sec-sub"></span></label>
+        <textarea class="field" id="drawNames" placeholder="닉네임을 한 줄에 하나씩 붙여 넣으세요. 같은 이름은 한 번만 계산해요."></textarea>
+        <button type="button" class="btn cherry big" id="drawBtn">뽑기</button>
+      </div>
+      <div class="tool-card t-dice">
+        <div class="t-head"><h2>주사위</h2>
+          <div class="seg" id="diceSeg" role="group" aria-label="주사위 개수"><button type="button" data-n="1" aria-pressed="true">1개</button><button type="button" data-n="2">2개</button><button type="button" data-n="3">3개</button></div></div>
+        <div class="dice-stage"><div class="dice" id="dice"></div><p class="dice-total"><b class="num" id="diceTotal"></b><small id="diceSum"></small></p></div>
+        <button type="button" class="btn cherry big" id="rollBtn">굴리기</button>
       </div>
     </div>
   </div></section>
@@ -50,6 +60,7 @@
 <script src="data/site.js"></script>
 <script src="data/content.js"></script>
 <script src="js/site.js"></script>
+<script src="js/games.js"></script>
 <script src="js/tools.js"></script>
 </body>
 </html>
