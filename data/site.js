@@ -21,7 +21,8 @@ window.SITE = {
   // 메인 큰 그림: 방송 중 / 방송 꺼졌을 때
   heroLive: "assets/hero-photo.jpg",
   heroOff: "assets/hero-photo.jpg",
-  heroPosition: "center 14%",      // 사진에서 보여줄 위치 (가로 세로). 세로 숫자가 작을수록 위쪽
+  heroPosition: "center 8%",       // 사진에서 보여줄 위치 (가로 세로). 세로 숫자가 작을수록 위쪽
+  heroRatio: 1.05,                 // 사진 칸의 가로÷세로. 작을수록 사진이 덜 확대돼서 몸이 더 많이 보여요
   heroTint: "#efe6f6",             // 사진 옆으로 번지는 배경색
   // 픽셀아트 장면을 다시 쓰려면: assets/hero-live.jpg (낮), assets/hero-off.jpg (밤)
 

@@ -10,6 +10,7 @@
     art.style.backgroundImage = 'url("' + asset(live ? S.heroLive : S.heroOff) + '")';
     if(S.heroPosition) art.style.backgroundPosition = S.heroPosition;
     if(S.heroTint) $("hero").style.setProperty("--hero-tint", S.heroTint);
+    if(S.heroRatio) $("hero").style.setProperty("--hero-ratio", S.heroRatio);
   };
   setArt(true);
   if(S.songbookUrl){ $("songBtn").href = S.songbookUrl; $("songBtn").hidden = false; }
