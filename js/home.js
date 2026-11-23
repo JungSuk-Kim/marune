@@ -12,6 +12,7 @@
     if(S.heroTint) $("hero").style.setProperty("--hero-tint", S.heroTint);
   };
   setArt(true);
+  if(S.songbookUrl){ $("songBtn").href = S.songbookUrl; $("songBtn").hidden = false; }
   if(S.giftInfo){
     const b = $("giftBtn"); b.hidden = false;
     b.addEventListener("click", () => toast(S.giftInfo));

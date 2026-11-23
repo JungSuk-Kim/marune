@@ -12,8 +12,10 @@ window.SITE = {
   // 링크: 비워 두면("") 해당 버튼이 숨겨집니다
   soopId: "mang0707",             // SOOP 방송국 아이디
   channelUrl: "https://www.sooplive.com/station/mang0707",   // SOOP 방송국 주소
-  youtubeUrl: "",                  // 유튜브 채널 주소
-  instagramUrl: "",                // 인스타그램 주소
+  youtubeUrl: "https://www.youtube.com/@chaemaru0707",   // 유튜브 채널 주소
+  youtubeChannelId: "UCmGMhjEYUqmdkpbG64riM3w",          // 유튜브 자동 목록용 채널 ID (functions/api/youtube.js 와 같게)
+  instagramUrl: "https://www.instagram.com/rea1.rubi2red",   // 인스타그램 주소
+  songbookUrl: "https://anan8723.github.io/diridir/%EB%A7%88%EB%A3%A8%EB%85%B8%EB%9E%98%EC%B1%85.html",   // 노래책 주소
   giftInfo: "",                    // 선물 보내는 곳 안내 문구 (비우면 버튼 숨김)
 
   // 메인 큰 그림: 방송 중 / 방송 꺼졌을 때

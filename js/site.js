@@ -56,14 +56,16 @@
     { id: "play",    label: "놀이터",   href: "play.html" },
     { id: "tools",   label: "방송 도구", href: "tools.html" }
   ];
-  const link = (n, extra) => '<a href="' + url(n.href) + '"' + (n.id === page ? ' aria-current="page"' : "") + (extra || "") + '>' + n.label + '</a>';
+  if(S.songbookUrl) NAV.splice(2, 0, { id: "songbook", label: "노래책", href: S.songbookUrl, ext: true });
+  const link = (n, extra) => '<a href="' + (n.ext ? esc(n.href) + '" target="_blank" rel="noopener' : url(n.href)) + '"' + (n.id === page ? ' aria-current="page"' : "") + (extra || "") + '>' + n.label + '</a>';
+  const half = Math.ceil(NAV.length / 2);
   const header = document.createElement("header");
   header.className = "site";
   header.innerHTML = '<div class="wrap head-row">'
-    + '<nav class="main left" aria-label="주 메뉴">' + NAV.slice(0, 3).map(n => link(n)).join("")
-    + NAV.slice(3).map(n => link(n, ' class="only-narrow"')).join("") + '</nav>'
+    + '<nav class="main left" aria-label="주 메뉴">' + NAV.slice(0, half).map(n => link(n)).join("")
+    + NAV.slice(half).map(n => link(n, ' class="only-narrow"')).join("") + '</nav>'
     + '<a class="wordmark" href="' + url("index.html") + '" aria-label="' + esc(S.siteName) + ' 처음으로">' + logo + '<span>' + esc(S.wordmark) + '</span></a>'
-    + '<div class="head-right"><nav class="main" aria-label="주 메뉴 계속">' + NAV.slice(3).map(n => link(n)).join("") + '</nav>'
+    + '<div class="head-right"><nav class="main" aria-label="주 메뉴 계속">' + NAV.slice(half).map(n => link(n)).join("") + '</nav>'
     + (S.channelUrl ? '<a class="btn" href="' + esc(S.channelUrl) + '" target="_blank" rel="noopener">방송국 가기</a>' : '<span></span>')
     + '</div></div>';
   const slotH = document.getElementById("site-header");
@@ -75,7 +77,8 @@
   const ext = [
     S.channelUrl && '<a href="' + esc(S.channelUrl) + '" target="_blank" rel="noopener">SOOP 방송국</a>',
     S.youtubeUrl && '<a href="' + esc(S.youtubeUrl) + '" target="_blank" rel="noopener">YouTube</a>',
-    S.instagramUrl && '<a href="' + esc(S.instagramUrl) + '" target="_blank" rel="noopener">Instagram</a>'
+    S.instagramUrl && '<a href="' + esc(S.instagramUrl) + '" target="_blank" rel="noopener">Instagram</a>',
+    S.songbookUrl && '<a href="' + esc(S.songbookUrl) + '" target="_blank" rel="noopener">노래책</a>'
   ].filter(Boolean).join("");
   footer.innerHTML = '<div class="wrap"><div>'
     + '<div class="wordmark">' + logo + '<span>' + esc(S.wordmark) + '</span></div>'

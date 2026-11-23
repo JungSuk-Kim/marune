@@ -1,5 +1,5 @@
 /* 유튜브 최신 영상: 채널의 공개 피드를 읽어 최근 영상 8개를 돌려줍니다.
-   Cloudflare Pages 설정 > 환경 변수에 YOUTUBE_CHANNEL_ID (UC로 시작하는 채널 ID)를 넣어야 동작합니다. */
+   채널 ID 는 아래 DEFAULT_CHANNEL_ID 에 적혀 있습니다. */
 function json(body, maxAge){
   return new Response(JSON.stringify(body), {
     headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=" + (maxAge || 0) }
@@ -7,8 +7,11 @@ function json(body, maxAge){
 }
 const unescape = s => s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
 
+/* 마루º 유튜브 채널 (@chaemaru0707). Cloudflare 환경 변수 YOUTUBE_CHANNEL_ID 를 넣으면 그 값이 우선합니다. */
+const DEFAULT_CHANNEL_ID = "UCmGMhjEYUqmdkpbG64riM3w";
+
 export async function onRequestGet({ env }){
-  const id = (env.YOUTUBE_CHANNEL_ID || "").trim();
+  const id = (env.YOUTUBE_CHANNEL_ID || DEFAULT_CHANNEL_ID).trim();
   if(!/^UC[a-zA-Z0-9_-]{22}$/.test(id)) return json({ ok: false, reason: "YOUTUBE_CHANNEL_ID 없음" });
   try{
     const r = await fetch("https://www.youtube.com/feeds/videos.xml?channel_id=" + id, { cf: { cacheTtl: 600, cacheEverything: true } });
