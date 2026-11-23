@@ -565,3 +565,31 @@ a.post-row.soop-row:hover{background:#eaf7ef}
 .foot-social .social{padding:6px 12px 6px 9px;font-size:12px}
 .foot-social .social .ico{width:16px;height:16px}
 @media (max-width:480px){ .head-actions .social.icon-only{width:34px;height:34px} .head-actions .btn{padding:8px 12px;font-size:13px} }
+
+/* 사다리타기 */
+.t-ladder .t-head{margin-bottom:-6px}
+.ladder-actions{display:flex;gap:8px;flex-wrap:wrap}
+.ladder-stage{position:relative;padding:44px 0 48px;border-radius:20px;background:linear-gradient(180deg,#fff7fa,#f4effb)}
+.ladder-stage canvas{display:block;width:100%;height:auto;aspect-ratio:960/420}
+.ladder-row{position:absolute;left:0;right:0;height:0}
+.ladder-row.top{top:22px}
+.ladder-row.bottom{bottom:26px}
+.ladder-name,.ladder-result{position:absolute;transform:translate(-50%,-50%);max-width:calc(100% / var(--cols,4) - 6px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:999px;font-size:13px;font-weight:700;padding:7px 12px}
+.ladder-name{border:2px solid var(--c);background:#fff;color:var(--ink);box-shadow:0 3px 8px rgba(42,35,64,.08)}
+.ladder-name:hover{background:var(--c);color:#fff}
+.ladder-result{background:#ece6f3;color:var(--ink-3);min-width:44px;text-align:center}
+.ladder-result.open{background:var(--c);color:#fff;animation:pop .3s}
+.ladder-summary{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.ladder-summary:empty{display:none}
+.ladder-summary span{border-radius:999px;padding:6px 14px;font-size:14px;background:#fff;border:2px solid var(--c);color:var(--ink)}
+.ladder-summary b{color:var(--c)}
+.ladder-edit{border-top:1px solid var(--line);padding-top:12px}
+.ladder-edit summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--ink-2)}
+.ladder-edit[open] summary{margin-bottom:12px}
+.ladder-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ladder-edit textarea.field{min-height:150px}
+@media (max-width:640px){
+  .ladder-edit-grid{grid-template-columns:1fr}
+  .ladder-name,.ladder-result{font-size:11px;padding:5px 7px}
+  .ladder-stage canvas{aspect-ratio:960/680}
+}
