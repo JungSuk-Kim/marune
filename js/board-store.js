@@ -95,7 +95,7 @@
       mode: "supabase",
       init: () => new Promise((resolve, reject) => {
         const s = document.createElement("script");
-        s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js";
+        s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.min.js";
         s.onload = async () => {
           try{
             sb = window.supabase.createClient(S.supabaseUrl, S.supabaseAnonKey);
