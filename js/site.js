@@ -95,7 +95,8 @@
   const dur = s => Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
   function vodCard(v){
     const catchType = v.type === "catch";
-    const img = catchType ? (v.vthumb || v.thumb) : v.thumb;
+    /* 캐치 세로 썸네일은 위아래 검은 띠가 있는 경우가 많아, 가로 썸네일의 가운데를 잘라 씀 */
+    const img = v.thumb || v.vthumb;
     return '<a class="card vod' + (catchType ? " catch" : "") + '" href="' + esc(v.url) + '" target="_blank" rel="noopener">'
       + '<div class="thumb" style="background-image:url(&quot;' + esc(img) + '&quot;)"><span class="kind">' + (catchType ? "캐치" : "클립") + '</span>'
       + '<span class="len num">' + dur(v.duration || 0) + '</span></div>'
