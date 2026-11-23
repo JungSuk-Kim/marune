@@ -29,6 +29,19 @@ window.PROMISES = {
   ]
 };
 
+/* 도전미션: 방송 중 들어온 SOOP 도전미션을 적어 두는 곳이에요.
+   status 는 "진행중", "성공", "실패" 중 하나. balloons 는 걸린 별풍선 개수, by 는 요청한 사람(비우면 "마루º"가 만든 미션),
+   date 는 "2026-11-24" 형식. 새 미션은 맨 위에 추가하면 돼요. */
+window.MISSIONS = {
+  sample: true,
+  items: [
+    { title: "노래 3곡 연속 고음 성공하기", balloons: 3000, by: "체리부자", status: "진행중", date: "2026-11-23" },
+    { title: "게임 1판 안 죽고 클리어", balloons: 1500, by: "새벽체리", status: "성공", date: "2026-11-22" },
+    { title: "애교 10초 버티기", balloons: 1000, by: "분홍우산", status: "성공", date: "2026-11-21" },
+    { title: "매운 라면 국물까지 다 먹기", balloons: 2000, by: "번개손", status: "실패", date: "2026-11-20" }
+  ]
+};
+
 /* 시그: category 는 "갠방" 또는 "엑셀". image 에 그림 경로를 넣으면 그 그림이,
    비워 두면 icon 번호의 퍼스나콘이 나옵니다 */
 window.SIGS = {

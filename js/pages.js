@@ -135,6 +135,25 @@
     $("doneList").innerHTML = done.length ? done.map(row).join("") : '<p class="empty">아직 완료한 공약이 없어요</p>';
     $("openCount").textContent = open.length + "건";
     $("doneCount").textContent = done.length + "건";
+
+    /* 도전미션 */
+    const M = window.MISSIONS || { items: [] };
+    $("missionChip").innerHTML = sampleChip(M.sample);
+    const ST = { "진행중": "ing", "성공": "ok", "실패": "fail" };
+    const okSum = M.items.filter(m => m.status === "성공").reduce((a, m) => a + (Number(m.balloons) || 0), 0);
+    $("missionSum").textContent = M.items.length ? "성공 " + M.items.filter(m => m.status === "성공").length + "건 · 성공 별풍선 " + okSum.toLocaleString() + "개" : "";
+    const mcard = m => '<article class="mission ' + (ST[m.status] || "ing") + '"><div class="m-top"><span class="m-badge">' + esc(m.status === "진행중" ? "진행 중" : m.status || "진행 중") + '</span>'
+      + '<span class="m-date num">' + esc(m.date || "") + '</span></div><h3>' + esc(m.title) + '</h3>'
+      + '<div class="m-foot"><span class="m-star num">⭐ ' + Number(m.balloons || 0).toLocaleString() + '개</span><span class="m-by">' + esc(m.by ? m.by + " 님 요청" : S.streamer + " 미션") + '</span></div></article>';
+    const showM = f => {
+      const items = f ? M.items.filter(m => m.status === f) : M.items;
+      $("missionList").innerHTML = items.length ? items.map(mcard).join("") : '<p class="empty">' + (f ? f + " 미션이 없어요" : "아직 적어 둔 도전미션이 없어요") + '</p>';
+    };
+    const mt = $("missionTabs");
+    mt.innerHTML = ["전체", "진행중", "성공", "실패"].map((t, i) => '<button type="button" data-f="' + (i ? t : "") + '" aria-pressed="' + (i ? "false" : "true") + '">' + (t === "진행중" ? "진행 중" : t)
+      + (i ? ' <span class="num">' + M.items.filter(m => m.status === t).length + '</span>' : "") + '</button>').join("");
+    mt.addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; mt.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); showM(b.dataset.f); });
+    showM("");
   }
 
   /* ── 놀이터 목록 ── */
