@@ -1,4 +1,4 @@
-/* 방송 도구: 룰렛 · 추첨 · 주사위. 방송 화면에 띄워 놓고 쓰는 용도 */
+/* 방송 도구: 룰렛 · 추첨(로또) · 주사위 · 사다리. 방송 화면에 띄워 놓고 쓰는 용도 */
 (function(){
   const { S, store, toast, asset } = window.CM, K = window.GameKit;
   const $ = id => document.getElementById(id);
@@ -108,32 +108,125 @@
     });
   }
   seg("drawSeg", n => { drawN = n; });
-  $("drawBtn").addEventListener("click", () => {
+  /* 로또 추첨기: 유리 통 안에서 공이 섞이다가 하나씩 굴러 나옴 */
+  const LC = $("lotto"), lx = LC.getContext("2d");
+  const BALL = ["#f9b4cb", "#ffd8a8", "#bfe6cb", "#cdbff5", "#aed6f7", "#ffe48f", "#f6bddf", "#b9e9e2"];
+  const BALL_INK = ["#8a2149", "#7a4a12", "#23613d", "#4b3a91", "#1f5687", "#6b5400", "#7c2b62", "#1f5f57"];
+  const CX = 320, CY = 215, DR = 182, OUT = { x: 320, y: 492 };
+  let balls = [], mixing = 0, shown = null, lastT = 0;
+  const short = s => Array.from(s).slice(0, 2).join("");
+  function makeBalls(){
+    const names = uniq(), n = Math.min(Math.max(names.length, 0), 44) || 18;
+    const r = n > 30 ? 17 : n > 16 ? 20 : 24;
+    const pick = names.length > n ? names.slice().sort(() => Math.random() - .5).slice(0, n) : names;
+    balls = Array.from({ length: n }, (_, i) => {
+      const a = Math.random() * Math.PI * 2, d = Math.random() * (DR - r - 10);
+      return { x: CX + Math.cos(a) * d * .6, y: CY + 60 + Math.sin(a) * d * .4, vx: 0, vy: 0, r, c: i % BALL.length,
+        label: pick[i] ? short(pick[i]) : String(i + 1) };
+    });
+  }
+  function physics(dt){
+    const g = 1500, lim = DR - 6;
+    balls.forEach(b => {
+      b.vy += g * dt;
+      if(mixing > 0){ /* 바람: 아래쪽 공을 세게 띄워 섞음 */
+        const low = (b.y - CY) / DR;
+        b.vx += (Math.random() - .5) * 9000 * dt;
+        b.vy -= (2600 + 3400 * Math.max(0, low)) * Math.random() * dt * 1.6;
+      } else if(Math.random() < .02){ b.vx += (Math.random() - .5) * 120; b.vy -= Math.random() * 160; }
+      const sp = Math.hypot(b.vx, b.vy); if(sp > 1500){ b.vx *= 1500 / sp; b.vy *= 1500 / sp; }
+      b.x += b.vx * dt; b.y += b.vy * dt;
+      const dx = b.x - CX, dy = b.y - CY, d = Math.hypot(dx, dy), m = lim - b.r;
+      if(d > m){
+        const nx = dx / d, ny = dy / d; b.x = CX + nx * m; b.y = CY + ny * m;
+        const vn = b.vx * nx + b.vy * ny; if(vn > 0){ b.vx -= 1.75 * vn * nx; b.vy -= 1.75 * vn * ny; b.vx *= .985; }
+      }
+    });
+    for(let i = 0; i < balls.length; i++) for(let j = i + 1; j < balls.length; j++){
+      const a = balls[i], b = balls[j], dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || .01, m = a.r + b.r;
+      if(d < m){
+        const nx = dx / d, ny = dy / d, o = (m - d) / 2;
+        a.x -= nx * o; a.y -= ny * o; b.x += nx * o; b.y += ny * o;
+        const rv = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+        if(rv < 0){ const k = -.9 * rv; a.vx -= k * nx; a.vy -= k * ny; b.vx += k * nx; b.vy += k * ny; }
+      }
+    }
+  }
+  function ball(x, y, r, c, label, big){
+    const gr = lx.createRadialGradient(x - r * .35, y - r * .4, r * .1, x, y, r);
+    gr.addColorStop(0, "#fff"); gr.addColorStop(.35, BALL[c]); gr.addColorStop(1, shade(BALL[c]));
+    lx.fillStyle = gr; lx.beginPath(); lx.arc(x, y, r, 0, Math.PI * 2); lx.fill();
+    lx.fillStyle = "rgba(255,255,255,.92)"; lx.beginPath(); lx.arc(x, y, r * (big ? .78 : .56), 0, Math.PI * 2); lx.fill();
+    lx.fillStyle = BALL_INK[c]; lx.textAlign = "center"; lx.textBaseline = "middle";
+    let fs = big ? 30 : r * .62;
+    lx.font = "700 " + fs + "px " + (big ? "Gaegu, Pretendard, sans-serif" : "Pretendard, sans-serif");
+    const max = r * (big ? 1.4 : 1);
+    while(lx.measureText(label).width > max && fs > 10){ fs -= 1; lx.font = "700 " + fs + "px " + (big ? "Gaegu, Pretendard, sans-serif" : "Pretendard, sans-serif"); }
+    lx.fillText(label, x, y + (big ? 2 : 1));
+  }
+  function shade(hex){ const n = parseInt(hex.slice(1), 16); const f = v => Math.round(v * .78); return "rgb(" + f(n >> 16) + "," + f((n >> 8) & 255) + "," + f(n & 255) + ")"; }
+  function render(){
+    lx.clearRect(0, 0, LC.width, LC.height);
+    /* 받침대 */
+    lx.fillStyle = "#efe7f6";
+    lx.beginPath(); lx.moveTo(CX - 70, CY + DR - 20); lx.lineTo(CX + 70, CY + DR - 20); lx.lineTo(CX + 150, 548); lx.lineTo(CX - 150, 548); lx.closePath(); lx.fill();
+    lx.fillStyle = "#fff"; lx.beginPath(); lx.ellipse(OUT.x, OUT.y + 40, 70, 12, 0, 0, Math.PI * 2); lx.fill();
+    /* 배출구 */
+    lx.fillStyle = "#e4dcef"; lx.fillRect(CX - 22, CY + DR - 8, 44, 42);
+    /* 통 */
+    lx.fillStyle = "rgba(255,255,255,.55)"; lx.beginPath(); lx.arc(CX, CY, DR, 0, Math.PI * 2); lx.fill();
+    balls.forEach(b => { if(!b.out) ball(b.x, b.y, b.r, b.c, b.label); });
+    lx.lineWidth = 8; lx.strokeStyle = "#e4487e"; lx.beginPath(); lx.arc(CX, CY, DR, 0, Math.PI * 2); lx.stroke();
+    lx.lineWidth = 3; lx.strokeStyle = "rgba(255,255,255,.9)"; lx.beginPath(); lx.arc(CX, CY, DR - 22, Math.PI * 1.1, Math.PI * 1.45); lx.stroke();
+    lx.fillStyle = "#e4487e"; lx.beginPath(); lx.arc(CX, CY - DR, 12, 0, Math.PI * 2); lx.fill();
+    if(shown) ball(shown.x, shown.y, shown.r, shown.c, shown.label, shown.r > 34);
+    else if(!drawing){ lx.fillStyle = "#b3a9c4"; lx.font = "700 22px Gaegu, Pretendard, sans-serif"; lx.textAlign = "center"; lx.fillText("누가 뽑힐까요?", OUT.x, OUT.y + 4); }
+  }
+  function loop(t){
+    const dt = Math.min(.033, (t - (lastT || t)) / 1000); lastT = t;
+    if(LC.offsetParent !== null){
+      mixing = Math.max(0, mixing - dt);
+      physics(dt / 2); physics(dt / 2); render();
+    }
+    requestAnimationFrame(loop);
+  }
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  function tween(ms, fn){ return new Promise(done => { const t0 = performance.now(); const f = now => { const k = Math.min(1, (now - t0) / ms); fn(k); if(k < 1) requestAnimationFrame(f); else done(); }; requestAnimationFrame(f); }); }
+  const ease = k => 1 - Math.pow(1 - k, 3);
+  let rebuildT;
+  drawInput.addEventListener("input", () => { clearTimeout(rebuildT); rebuildT = setTimeout(() => { if(!drawing){ shown = null; makeBalls(); } }, 400); });
+
+  $("drawBtn").addEventListener("click", async () => {
     if(drawing) return;
     const names = uniq();
     if(!names.length) return toast("참여자 닉네임을 넣어 주세요");
     if(drawN > names.length) return toast("뽑을 사람 수가 참여자보다 많아요");
     for(let i = names.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [names[i], names[j]] = [names[j], names[i]]; }
     const win = names.slice(0, drawN);
-    drawing = true; $("drawResult").innerHTML = ""; $("drawSlot").classList.add("rolling");
-    let t = 0;
-    const tick = () => {
-      $("drawSlotText").textContent = names[Math.floor(Math.random() * names.length)];
-      t += 1;
-      if(t < (reduce ? 1 : 22)) setTimeout(tick, 40 + t * 6);
-      else {
-        $("drawSlot").classList.remove("rolling");
-        $("drawSlotText").textContent = win.length === 1 ? win[0] : win.length + "명 당첨!";
-        win.forEach((name, i) => setTimeout(() => {
-          const s = document.createElement("span"); s.textContent = name; $("drawResult").appendChild(s);
-        }, i * 160));
-        const r = $("drawSlot").getBoundingClientRect(), st = $("drawSlot").parentElement.getBoundingClientRect();
-        K.burst($("drawSlot").parentElement, r.left - st.left + r.width / 2, r.top - st.top + r.height / 2, null, 14);
-        drawing = false;
-      }
-    };
-    tick();
+    drawing = true; shown = null; $("drawResult").innerHTML = ""; $("drawBtn").disabled = true;
+    makeBalls();
+    mixing = reduce ? .2 : 1.8; await wait(reduce ? 200 : 1800);
+    for(let w = 0; w < win.length; w++){
+      if(w > 0 && !reduce){ mixing = .7; await wait(700); }
+      const left = balls.filter(b => !b.out);
+      const b = left.reduce((best, x) => (x.y > best.y ? x : best), left[0]); /* 맨 아래 공이 빠져나감 */
+      b.out = true;
+      const s = { x: b.x, y: b.y, r: b.r, c: b.c, label: b.label };
+      shown = s;
+      const neck = { x: CX, y: CY + DR + 14 };
+      await tween(reduce ? 1 : 380, k => { const e = ease(k); s.x = b.x + (neck.x - b.x) * e; s.y = b.y + (neck.y - b.y) * e; });
+      s.label = win[w];
+      await tween(reduce ? 1 : 520, k => { const e = ease(k); s.y = neck.y + (OUT.y - neck.y) * e; s.r = b.r + (52 - b.r) * e; });
+      const st = $("lottoStage"), rc = LC.getBoundingClientRect(), sr = st.getBoundingClientRect(), sc = rc.width / LC.width;
+      K.burst(st, rc.left - sr.left + OUT.x * sc, rc.top - sr.top + OUT.y * sc, [BALL[s.c], "#ffd166", "#e4487e"], 14);
+      const tag = document.createElement("span"); tag.style.setProperty("--c", BALL[s.c]); tag.style.setProperty("--ci", BALL_INK[s.c]);
+      tag.textContent = win[w]; $("drawResult").appendChild(tag);
+      if(w < win.length - 1) await wait(reduce ? 50 : 900);
+    }
+    if(win.length > 1) K.confetti($("lottoStage"));
+    drawing = false; $("drawBtn").disabled = false;
   });
+  makeBalls(); requestAnimationFrame(loop);
 
   /* ───────── 주사위 ───────── */
   const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
@@ -313,4 +406,22 @@
   window.__ladder = { path: s => path(s).end, names: () => names.slice(), results: () => results.slice() };
   load(); build();
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(() => draw());
+})();
+
+/* ───────── 도구 탭 ───────── */
+(function(){
+  const tabs = document.getElementById("toolTabs"); if(!tabs) return;
+  const { store } = window.CM;
+  const names = ["wheel", "draw", "dice", "ladder"];
+  function show(name, push){
+    if(!names.includes(name)) name = "wheel";
+    tabs.querySelectorAll("[data-tool]").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tool === name)));
+    document.querySelectorAll(".tool-panel").forEach(p => { p.hidden = p.dataset.panel !== name; });
+    store.set("tool-tab", name);
+    if(push) history.replaceState(null, "", "#" + name);
+    window.dispatchEvent(new Event("resize"));
+  }
+  tabs.addEventListener("click", e => { const b = e.target.closest("[data-tool]"); if(b) show(b.dataset.tool, true); });
+  window.addEventListener("hashchange", () => show(location.hash.slice(1)));
+  show(location.hash.slice(1) || store.get("tool-tab", "wheel"));
 })();

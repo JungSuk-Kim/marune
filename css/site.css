@@ -468,8 +468,15 @@ a.post-row.soop-row:hover{background:#eaf7ef}
 }
 
 /* ───────── 방송 도구 ───────── */
-.tool-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;align-items:start}
-.tool-col{display:flex;flex-direction:column;gap:18px}
+.tool-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:680px;margin:0 auto 20px;background:var(--surface);padding:6px;border-radius:20px;box-shadow:var(--shadow)}
+.tool-tabs button{display:flex;align-items:center;justify-content:center;gap:7px;border:0;background:none;border-radius:15px;padding:12px 8px;font-size:15px;font-weight:700;color:var(--ink-2);transition:background .15s,color .15s}
+.tool-tabs button:hover{background:var(--tint)}
+.tool-tabs button[aria-selected="true"]{background:var(--cherry,#e4487e);color:#fff;box-shadow:0 4px 12px rgba(228,72,126,.3)}
+.tt-ico{font-size:18px;line-height:1}
+.tool-panel{max-width:680px;margin:0 auto}
+.tool-panel.wide{max-width:none}
+.tool-panel[hidden]{display:none}
+@media (max-width:520px){ .tool-tabs{gap:4px;padding:4px} .tool-tabs button{flex-direction:column;gap:3px;font-size:12px;padding:9px 4px} }
 .tool-card{position:relative;background:var(--surface);border-radius:28px;box-shadow:var(--shadow);padding:22px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
 .t-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .t-head h2{font-family:var(--font-display);font-size:30px;font-weight:700;line-height:1}
@@ -507,7 +514,9 @@ a.post-row.soop-row:hover{background:#eaf7ef}
 @keyframes slotb{to{transform:translateY(-3px)}}
 .picked{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;min-height:0}
 .picked:empty{display:none}
-.picked span{background:var(--cherry);color:#fff;border-radius:999px;padding:7px 16px;font-weight:700;font-size:15px;animation:pop .3s;box-shadow:0 4px 10px rgba(228,72,126,.25)}
+.picked span{background:radial-gradient(circle at 30% 25%,#fff 0 12%,var(--c,#f9b4cb) 45%);color:var(--ci,#8a2149);border-radius:999px;padding:8px 18px;font-weight:800;font-size:16px;animation:pop .3s;box-shadow:0 4px 10px rgba(42,35,64,.14),inset 0 -3px 0 rgba(0,0,0,.08)}
+.lotto{position:relative;border-radius:22px;background:radial-gradient(circle at 50% 38%,#fff 0,#fff3f8 45%,#f1eafb 100%);overflow:hidden}
+.lotto canvas{display:block;width:100%;height:auto;aspect-ratio:640/560}
 .t-draw textarea.field{min-height:110px}
 
 /* 주사위 */

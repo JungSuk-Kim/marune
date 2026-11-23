@@ -21,7 +21,14 @@
     <p>방송 중에 화면에 띄워 놓고 쓰는 룰렛, 추첨, 주사위, 사다리타기예요. 적어 둔 내용은 이 기기에 저장돼요.</p>
   </div></div>
 
-  <section class="band"><div class="wrap bare tool-grid">
+  <section class="band"><div class="wrap bare">
+    <div class="tool-tabs" id="toolTabs" role="tablist" aria-label="방송 도구">
+      <button type="button" role="tab" data-tool="wheel" aria-selected="true"><span class="tt-ico">🎡</span>룰렛</button>
+      <button type="button" role="tab" data-tool="draw" aria-selected="false"><span class="tt-ico">🎱</span>추첨</button>
+      <button type="button" role="tab" data-tool="dice" aria-selected="false"><span class="tt-ico">🎲</span>주사위</button>
+      <button type="button" role="tab" data-tool="ladder" aria-selected="false"><span class="tt-ico">🪜</span>사다리타기</button>
+    </div>
+    <div class="tool-panel" data-panel="wheel" role="tabpanel">
     <div class="tool-card t-wheel">
       <div class="t-head"><h2>룰렛</h2><span class="sec-sub" id="wheelCount"></span></div>
       <div class="wheel-stage" id="wheelStage">
@@ -37,16 +44,19 @@
         <div class="chip-add"><input class="field" id="wheelInput" maxlength="20" placeholder="항목 추가 (예: 노래 한 곡)" aria-label="룰렛 항목 추가"><button type="submit" class="btn">추가</button></div>
       </form>
     </div>
-    <div class="tool-col">
+    </div>
+    <div class="tool-panel" data-panel="draw" role="tabpanel" hidden>
       <div class="tool-card t-draw">
         <div class="t-head"><h2>추첨</h2>
           <div class="seg" id="drawSeg" role="group" aria-label="뽑을 사람 수"><button type="button" data-n="1" aria-pressed="true">1명</button><button type="button" data-n="2">2명</button><button type="button" data-n="3">3명</button><button type="button" data-n="5">5명</button></div></div>
-        <div class="slot" id="drawSlot"><span id="drawSlotText">누가 뽑힐까요?</span></div>
+        <div class="lotto" id="lottoStage"><canvas id="lotto" width="640" height="560" aria-label="추첨기"></canvas></div>
         <div class="picked" id="drawResult" aria-live="polite"></div>
         <label class="mini-label" for="drawNames">참여자 <span id="drawInfo" class="sec-sub"></span></label>
         <textarea class="field" id="drawNames" placeholder="닉네임을 한 줄에 하나씩 붙여 넣으세요. 같은 이름은 한 번만 계산해요."></textarea>
         <button type="button" class="btn cherry big" id="drawBtn">뽑기</button>
       </div>
+    </div>
+    <div class="tool-panel" data-panel="dice" role="tabpanel" hidden>
       <div class="tool-card t-dice">
         <div class="t-head"><h2>주사위</h2>
           <div class="seg" id="diceSeg" role="group" aria-label="주사위 개수"><button type="button" data-n="1" aria-pressed="true">1개</button><button type="button" data-n="2">2개</button><button type="button" data-n="3">3개</button></div></div>
@@ -54,8 +64,7 @@
         <button type="button" class="btn cherry big" id="rollBtn">굴리기</button>
       </div>
     </div>
-  </div></section>
-  <section class="band"><div class="wrap bare">
+    <div class="tool-panel wide" data-panel="ladder" role="tabpanel" hidden>
     <div class="tool-card t-ladder" id="ladderCard">
       <div class="t-head"><h2>사다리타기</h2>
         <div class="ladder-actions"><button type="button" class="btn light" id="ladderNew">사다리 새로 만들기</button><button type="button" class="btn cherry" id="ladderAll">전체 결과 보기</button></div></div>
@@ -74,6 +83,7 @@
         </div>
         <button type="button" class="btn" id="ladderApply">적용하고 새로 만들기</button>
       </details>
+    </div>
     </div>
   </div></section>
 </main>
