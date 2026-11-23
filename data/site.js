@@ -32,7 +32,8 @@ window.SITE = {
   boards: [
     { id: "notice", label: "공지사항",    write: "admin" },
     { id: "free",   label: "자유게시판",  write: "member" },
-    { id: "diary",  label: "마루 일기장", write: "streamer" }
+    { id: "diary",  label: "마루 일기장", write: "streamer" },
+    { id: "soop",   label: "방송국 글",   external: true }   // SOOP 방송국 글을 자동으로 보여주는 칸 (여기서 쓰지 않음)
   ],
 
   // 로고와 게임에 쓰는 대표 퍼스나콘 번호 (assets/p01~p12.png)

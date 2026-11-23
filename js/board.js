@@ -12,8 +12,21 @@
     if(d.toDateString() === now.toDateString()) return pad(d.getHours()) + ":" + pad(d.getMinutes());
     return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
   }
-  const badge = role => role === "admin" ? '<span class="role-badge">운영자</span>' : role === "streamer" ? '<span class="role-badge">' + esc(S.streamer) + '</span>' : "";
+  const badge = role => role === "admin" ? '<span class="role-badge">운영자</span>' : role === "streamer" ? '<span class="role-badge">스트리머</span>' : "";
   const catChip = c => '<span class="cat ' + esc(c) + '">' + esc(B.label(c)) + '</span>';
+
+  /* ── SOOP 방송국 글 (서버 함수 /api/notices) ── */
+  const soopTime = s => Date.parse(String(s).replace(" ", "T") + "+09:00") || 0;
+  function fetchSoop(page, size){
+    if(!location.protocol.startsWith("http")) return Promise.resolve(null);
+    return fetch(url("api/notices?page=" + page + "&size=" + size), { cache: "no-store" })
+      .then(r => r.ok ? r.json() : null).then(d => d && d.ok ? d : null).catch(() => null);
+  }
+  const soopRow = (n, pinned) => '<a class="post-row soop-row' + (pinned ? " pinned" : "") + '" href="' + esc(n.url) + '" target="_blank" rel="noopener">'
+    + '<span class="cat soop">방송국</span>'
+    + '<span class="t">' + esc(n.title) + (n.comments ? '<small class="num">[' + n.comments + ']</small>' : "") + '<span class="sub">' + esc(n.board) + '</span></span>'
+    + '<span class="who">' + esc(n.author || S.streamer) + badge("streamer") + '</span>'
+    + '<span class="when num">' + when(soopTime(n.date)) + '</span><span class="n num">' + n.views + '</span><span class="n num">' + n.likes + '</span></a>';
 
   /* ── 창 ── */
   function modal(html, onReady){
@@ -72,6 +85,7 @@
     const st = { cat: params.get("cat") || null, q: "", sort: "new", page: 1 };
     const tabs = $("tabs");
     tabs.innerHTML = '<button type="button" data-cat="">전체</button>' + B.boards.map(b => '<button type="button" data-cat="' + esc(b.id) + '">' + esc(b.label) + '</button>').join("");
+    const isSoop = () => !!(B.boards.find(b => b.id === st.cat) || {}).external;
     const markTabs = () => tabs.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", (b.dataset.cat || null) === st.cat));
     tabs.addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; st.cat = b.dataset.cat || null; st.page = 1; st.q = ""; $("q").value = ""; markTabs(); load(); });
     $("searchForm").addEventListener("submit", e => { e.preventDefault(); st.q = $("q").value.trim(); st.page = 1; load(); });
@@ -85,20 +99,38 @@
       + '<span class="t">' + esc(p.title) + (p.comments ? '<small class="num">[' + p.comments + ']</small>' : "") + '</span>'
       + '<span class="who">' + esc(p.author) + badge(p.authorRole) + '</span>'
       + '<span class="when num">' + when(p.createdAt) + '</span><span class="n num">' + p.views + '</span><span class="n num">' + p.likes + '</span></a>';
+    const HEAD = '<div class="post-row head"><span>게시판</span><span>제목</span><span>작성자</span><span>작성일</span><span class="n">조회</span><span class="n">추천</span></div>';
     async function load(){
       $("list").innerHTML = '<p class="empty">불러오는 중…</p>';
+      const soop = isSoop();
+      $("searchForm").hidden = soop;
+      $("writeBtn").hidden = soop;
       try{
-        const plain = !st.cat && !st.q && st.page === 1 && st.sort === "new";
-        const [res, pins] = await Promise.all([
-          B.list(st),
-          plain ? B.list({ cat: "notice", size: 3, page: 1 }) : Promise.resolve({ items: [] })
-        ]);
-        const pinIds = new Set(pins.items.map(p => p.id));
-        const body = pins.items.map(p => rowHtml(p, true)).join("") + res.items.filter(p => !pinIds.has(p.id)).map(p => rowHtml(p, false)).join("");
-        $("list").innerHTML = '<div class="post-row head"><span>게시판</span><span>제목</span><span>작성자</span><span>작성일</span><span class="n">조회</span><span class="n">추천</span></div>'
-          + (body || '<p class="empty">' + (st.q ? "검색 결과가 없어요" : "아직 글이 없어요. 첫 글을 써 보세요") + '</p>');
-        $("total").textContent = "총 " + res.total + "개";
-        const pages = Math.max(1, Math.ceil(res.total / B.pageSize));
+        let pages;
+        if(soop){
+          const d = await fetchSoop(st.page, B.pageSize);
+          if(!d){
+            $("list").innerHTML = '<p class="empty">' + (location.protocol.startsWith("http") ? "방송국 글을 불러오지 못했어요. 잠시 뒤 다시 열어 주세요." : "사이트를 배포한 뒤에 " + esc(S.streamer) + " 방송국 글이 여기에 보여요.") + '</p>';
+            $("total").textContent = ""; $("pager").innerHTML = ""; return;
+          }
+          $("list").innerHTML = HEAD + (d.items.length ? d.items.map(n => soopRow(n, false)).join("") : '<p class="empty">방송국 글이 없어요</p>');
+          $("total").textContent = "총 " + d.total + "개 · SOOP 방송국";
+          pages = Math.max(1, d.lastPage || 1);
+        } else {
+          const plain = !st.cat && !st.q && st.page === 1 && st.sort === "new";
+          const [res, pins, sp] = await Promise.all([
+            B.list(st),
+            plain ? B.list({ cat: "notice", size: 3, page: 1 }) : Promise.resolve({ items: [] }),
+            plain ? fetchSoop(1, 3) : Promise.resolve(null)
+          ]);
+          const pinIds = new Set(pins.items.map(p => p.id));
+          const body = pins.items.map(p => rowHtml(p, true)).join("")
+            + (sp ? sp.items.map(n => soopRow(n, true)).join("") : "")
+            + res.items.filter(p => !pinIds.has(p.id)).map(p => rowHtml(p, false)).join("");
+          $("list").innerHTML = HEAD + (body || '<p class="empty">' + (st.q ? "검색 결과가 없어요" : "아직 글이 없어요. 첫 글을 써 보세요") + '</p>');
+          $("total").textContent = "총 " + res.total + "개";
+          pages = Math.max(1, Math.ceil(res.total / B.pageSize));
+        }
         let html = '<button type="button" data-p="' + (st.page - 1) + '"' + (st.page <= 1 ? " disabled" : "") + '>이전</button>';
         const from = Math.max(1, Math.min(st.page - 2, pages - 4)), to = Math.min(pages, from + 4);
         for(let i = from; i <= to; i++) html += '<button type="button" data-p="' + i + '"' + (i === st.page ? ' aria-current="page"' : "") + '>' + i + '</button>';

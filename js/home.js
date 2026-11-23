@@ -80,11 +80,12 @@
   /* ── 방송국 최신 글 (SOOP) + 게시판 최근 글 ── */
   const shortDate = v => { const t = typeof v === "number" ? v : Date.parse(String(v).replace(" ", "T")); if(!t) return ""; const d = new Date(t); return (d.getMonth() + 1) + "." + String(d.getDate()).padStart(2, "0"); };
   if(location.protocol.startsWith("http")){
-    getJSON("api/notices").then(d => {
+    getJSON("api/notices?size=5").then(d => {
       if(!d || !d.ok || !d.items || !d.items.length) return;
       $("soopPanel").hidden = false;
       $("soopList").innerHTML = d.items.slice(0, 5).map(n =>
-        '<a href="' + esc(n.url) + '" target="_blank" rel="noopener"><span class="cat soop">' + (n.notice ? "공지" : "방송국") + '</span><span class="t">' + esc(n.title) + '</span><time class="num">' + shortDate(n.date) + '</time></a>').join("");
+        '<a href="' + esc(n.url) + '" target="_blank" rel="noopener"><span class="cat soop">방송국</span><span class="t">' + esc(n.title)
+        + (n.comments ? ' <small class="num" style="color:var(--cherry)">[' + n.comments + ']</small>' : "") + '</span><time class="num">' + shortDate(String(n.date).replace(" ", "T") + "+09:00") + '</time></a>').join("");
     });
   }
   const BS = window.BoardStore;

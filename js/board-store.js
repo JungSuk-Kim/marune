@@ -166,7 +166,7 @@
     /* 이 게시판에 글을 쓸 수 있는지: write 값이 member 면 로그인한 누구나, streamer 면 스트리머·운영자, admin 이면 운영자만 */
     canWrite(cat){
       const u = be.user(), b = BOARDS.find(x => x.id === cat);
-      if(!u || !b) return false;
+      if(!u || !b || b.external) return false;
       if(u.role === "admin") return true;
       if(b.write === "member") return true;
       return b.write === "streamer" && u.role === "streamer";
