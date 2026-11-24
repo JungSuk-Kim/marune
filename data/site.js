@@ -30,7 +30,7 @@ window.SITE = {
   // Supabase 프로젝트를 만든 뒤 두 값을 넣으면 실제 게시판이 됩니다. 비워 두면 체험 모드로 동작합니다.
   supabaseUrl: "https://biguxhozbstwgjhayuvz.supabase.co",
   supabaseAnonKey: "sb_publishable_HjJu4VSEbbfmmwKDRlNBbw_SuqVRTgf", // Supabase 설정 > API Keys 의 Publishable key (공개해도 되는 키)
-  loginProviders: ["google"],      // 카카오는 설정을 마치면 "kakao" 를 앞에 추가
+  loginProviders: ["kakao", "google"],
   // write: 누가 글을 쓸 수 있는지. member = 로그인한 누구나, streamer = 스트리머와 운영자, admin = 운영자만
   boards: [
     { id: "notice", label: "공지사항",    write: "admin" },
