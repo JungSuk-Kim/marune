@@ -810,3 +810,9 @@ a.post-row.soop-row:hover{background:#eaf7ef}
   .adm-acts{justify-content:flex-start}
   .adm-usage{grid-template-columns:1fr}
 }
+
+/* 일정표: 날짜 · 특별 일정(합방 등) */
+.sched .row{grid-template-columns:44px 1fr auto}
+.sched .day small{display:block;font-size:10px;font-weight:500;color:var(--ink-3)}
+.sched .row.special .what{color:var(--cherry);font-weight:700}
+.sched .row.special .what::before{content:"★ ";font-size:11px}

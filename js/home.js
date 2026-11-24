@@ -121,8 +121,16 @@
   const SC = window.SCHEDULE || { days: [] };
   const todayIdx = (new Date().getDay() + 6) % 7;
   $("schedChip").innerHTML = sampleChip(SC.sample);
-  $("sched").innerHTML = SC.days.length ? SC.days.map((s, i) =>
-    '<div class="row' + (i === todayIdx ? " today" : "") + (s.rest ? " rest" : "") + '"><span class="day">' + esc(s.day) + '</span><span class="what">' + esc(s.title)
+  /* 이번 주 날짜를 붙이고, special 에 적힌 날은 그 내용으로 바꿈 */
+  const mon = new Date(); mon.setHours(0, 0, 0, 0); mon.setDate(mon.getDate() - todayIdx);
+  const ymd = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  const days = SC.days.map((s, i) => {
+    const d = new Date(mon); d.setDate(mon.getDate() + i);
+    const sp = (SC.special || []).find(x => x.date === ymd(d));
+    return Object.assign({}, s, sp ? { title: sp.title, time: sp.time || "", rest: !!sp.rest, special: true } : {}, { md: (d.getMonth() + 1) + "/" + d.getDate() });
+  });
+  $("sched").innerHTML = days.length ? days.map((s, i) =>
+    '<div class="row' + (i === todayIdx ? " today" : "") + (s.rest ? " rest" : "") + (s.special ? " special" : "") + '"><span class="day">' + esc(s.day) + '<small class="num">' + esc(s.md) + '</small></span><span class="what">' + esc(s.title)
     + (i === todayIdx ? ' <span class="chip">오늘</span>' : "") + '</span><time class="num">' + esc(s.time) + '</time></div>').join("")
     : '<p class="empty">등록된 일정이 없어요</p>';
 

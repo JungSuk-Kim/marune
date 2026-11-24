@@ -5,17 +5,21 @@
    실제 내용으로 바꾼 뒤 sample: false 로 고치세요.
    ───────────────────────────────────────────── */
 
-/* 이번 주 방송 일정: 월~일 순서. 쉬는 날은 rest: true */
+/* 방송 일정: 매주 고정 일정(월~일 순서). 쉬는 날은 rest: true
+   special 에 날짜("2026-11-25" 형식)를 적으면 그 주 그 요일만 바뀌어요. 지난 날짜는 지워도 되고 그냥 둬도 돼요. */
 window.SCHEDULE = {
-  sample: true,
+  sample: false,
   days: [
-    { day: "월", title: "휴방", time: "", rest: true },
-    { day: "화", title: "저녁 수다 방송", time: "20:00" },
-    { day: "수", title: "게임 같이 하는 날", time: "20:00" },
-    { day: "목", title: "휴방", time: "", rest: true },
-    { day: "금", title: "노래 신청곡", time: "21:00" },
-    { day: "토", title: "시청자 참여 콘텐츠", time: "19:00" },
-    { day: "일", title: "한 주 마무리 수다", time: "20:00" }
+    { day: "월", title: "개인방송", time: "14:00" },
+    { day: "화", title: "개인방송", time: "14:00" },
+    { day: "수", title: "개인방송", time: "14:00" },
+    { day: "목", title: "개인방송", time: "14:00" },
+    { day: "금", title: "휴방", time: "", rest: true },
+    { day: "토", title: "개인방송", time: "14:00" },
+    { day: "일", title: "개인방송", time: "14:00" }
+  ],
+  special: [
+    { date: "2026-11-25", title: "꿀지원 합방", time: "" }
   ]
 };
 
