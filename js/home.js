@@ -118,21 +118,46 @@
     '<div>' + pc(i + 1) + '<span><b>' + esc(p.name) + '</b>' + esc(p.label) + '</span></div>').join("");
 
   /* ── 일정 ── */
-  const SC = window.SCHEDULE || { days: [] };
   const todayIdx = (new Date().getDay() + 6) % 7;
-  $("schedChip").innerHTML = sampleChip(SC.sample);
-  /* 이번 주 날짜를 붙이고, special 에 적힌 날은 그 내용으로 바꿈 */
   const mon = new Date(); mon.setHours(0, 0, 0, 0); mon.setDate(mon.getDate() - todayIdx);
   const ymd = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-  const days = SC.days.map((s, i) => {
-    const d = new Date(mon); d.setDate(mon.getDate() + i);
-    const sp = (SC.special || []).find(x => x.date === ymd(d));
-    return Object.assign({}, s, sp ? { title: sp.title, time: sp.time || "", rest: !!sp.rest, special: true } : {}, { md: (d.getMonth() + 1) + "/" + d.getDate() });
+  function drawSchedule(){
+    const SC = window.SCHEDULE || { days: [] };
+    $("schedChip").innerHTML = sampleChip(SC.sample);
+    /* 이번 주 날짜를 붙이고, special 에 적힌 날은 그 내용으로 바꿈 */
+    const days = SC.days.map((s, i) => {
+      const d = new Date(mon); d.setDate(mon.getDate() + i);
+      const sp = (SC.special || []).find(x => x.date === ymd(d));
+      return Object.assign({}, s, sp ? { title: sp.title, time: sp.time || "", rest: !!sp.rest, special: true } : {}, { md: (d.getMonth() + 1) + "/" + d.getDate() });
+    });
+    $("sched").innerHTML = days.length ? days.map((s, i) =>
+      '<div class="row' + (i === todayIdx ? " today" : "") + (s.rest ? " rest" : "") + (s.special ? " special" : "") + '"><span class="day">' + esc(s.day) + '<small class="num">' + esc(s.md) + '</small></span><span class="what">' + esc(s.title)
+      + (i === todayIdx ? ' <span class="chip">오늘</span>' : "") + '</span><time class="num">' + esc(s.time) + '</time></div>').join("")
+      : '<p class="empty">등록된 일정이 없어요</p>';
+  }
+  drawSchedule();
+  /* 운영자·스트리머가 사이트에서 고친 일정이 있으면 그것을 씀 (없으면 data/content.js) */
+  if(S.supabaseUrl && S.supabaseAnonKey){
+    const get = t => fetch(S.supabaseUrl.replace(/\/$/, "") + "/rest/v1/" + t, { headers: { apikey: S.supabaseAnonKey } }).then(r => r.ok ? r.json() : null).catch(() => null);
+    const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+    Promise.all([get("schedule_week?select=*&order=dow"), get("schedule_special?select=*&day=gte." + ymd(mon) + "&day=lte." + ymd(sun))]).then(([w, sp]) => {
+      if(!w || w.length !== 7) return;
+      const DN = ["월", "화", "수", "목", "금", "토", "일"];
+      window.SCHEDULE = { sample: false, days: w.map(r => ({ day: DN[r.dow], title: r.title, time: r.time, rest: r.rest })),
+        special: (sp || []).map(r => ({ date: r.day, title: r.title, time: r.time, rest: r.rest })) };
+      drawSchedule();
+    });
+  }
+  /* 운영자·스트리머에게 "수정" 링크 */
+  if(window.BoardStore) window.BoardStore.ready.then(() => {
+    const show = () => {
+      const u = window.BoardStore.user(), can = !!u && (u.role === "admin" || u.role === "streamer");
+      let a = document.getElementById("schedEdit");
+      if(can && !a){ a = document.createElement("a"); a.id = "schedEdit"; a.className = "text-btn"; a.href = url("admin.html#schedule"); a.textContent = "수정"; $("schedChip").after(a); }
+      if(!can && a) a.remove();
+    };
+    window.BoardStore.onAuth(show); show();
   });
-  $("sched").innerHTML = days.length ? days.map((s, i) =>
-    '<div class="row' + (i === todayIdx ? " today" : "") + (s.rest ? " rest" : "") + (s.special ? " special" : "") + '"><span class="day">' + esc(s.day) + '<small class="num">' + esc(s.md) + '</small></span><span class="what">' + esc(s.title)
-    + (i === todayIdx ? ' <span class="chip">오늘</span>' : "") + '</span><time class="num">' + esc(s.time) + '</time></div>').join("")
-    : '<p class="empty">등록된 일정이 없어요</p>';
 
   /* ── 공약 (진행 중인 것 3개까지) ── */
   const P = window.PROMISES || { items: [] };

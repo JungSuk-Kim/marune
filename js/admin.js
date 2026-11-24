@@ -19,14 +19,19 @@
     const u = B.user();
     if(B.mode === "demo"){ $("adminGate").innerHTML = '<p class="empty">체험 모드에서는 운영자 화면을 쓸 수 없어요. data/site.js 에 Supabase 설정을 넣어 주세요.</p>'; return false; }
     if(!u){ $("adminGate").innerHTML = '<p class="empty">운영자 계정으로 로그인해 주세요.</p>'; return false; }
-    if(u.role !== "admin"){ $("adminGate").innerHTML = '<p class="empty">운영자만 볼 수 있는 화면이에요.</p>'; return false; }
+    if(u.role !== "admin" && u.role !== "streamer"){ $("adminGate").innerHTML = '<p class="empty">운영자만 볼 수 있는 화면이에요.</p>'; return false; }
+    /* 스트리머는 일정표만 */
+    const admin = u.role === "admin";
+    document.querySelectorAll("#adminTabs [data-tab]").forEach(b => b.hidden = !admin && b.dataset.tab !== "schedule");
+    $("adminTabs").style.display = admin ? "" : "none";
+    if(!admin) current = "schedule";
     $("adminGate").innerHTML = ""; return true;
   }
 
   /* ── 탭 ── */
-  const TABS = { reports: loadReports, members: loadMembers, content: loadContent, missions: loadMissions, promises: loadPromises, videos: loadVideos };
+  const TABS = { schedule: loadSchedule, reports: loadReports, members: loadMembers, content: loadContent, missions: loadMissions, promises: loadPromises, videos: loadVideos };
   let current = (location.hash || "").slice(1);
-  if(!TABS[current]) current = "reports";
+  if(!TABS[current]) current = "schedule";
   function show(name){
     current = name;
     document.querySelectorAll("#adminTabs button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === name)));
@@ -35,6 +40,40 @@
     TABS[name]().catch(fail);
   }
   $("adminTabs").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if(b) show(b.dataset.tab); });
+
+  /* ── 일정표 ── */
+  const DN = ["월", "화", "수", "목", "금", "토", "일"];
+  async function loadSchedule(){
+    const w = ok(await sb.from("schedule_week").select("*").order("dow"));
+    const rows = DN.map((d, i) => w.find(r => r.dow === i) || { dow: i, title: "", time: "", rest: false });
+    $("weekRows").innerHTML = rows.map(r => '<div class="sch-row" data-dow="' + r.dow + '"><b>' + DN[r.dow] + '</b>'
+      + '<input class="field" name="t" maxlength="40" value="' + esc(r.title) + '" placeholder="방송 내용">'
+      + '<input class="field num" name="h" maxlength="20" value="' + esc(r.time) + '" placeholder="14:00">'
+      + '<label class="sch-rest"><input type="checkbox" name="r"' + (r.rest ? " checked" : "") + '> 휴방</label></div>').join("");
+    const today = day(Date.now());
+    const sp = ok(await sb.from("schedule_special").select("*").gte("day", day(Date.now() - 7 * 86400000)).order("day"));
+    $("specialList").innerHTML = sp.length ? sp.map(s => '<div class="adm-row' + (s.day < today ? " past" : "") + '" data-id="' + s.id + '"><div class="adm-main"><div class="adm-top"><b class="num">' + esc(s.day) + ' (' + DN[(new Date(s.day + "T00:00").getDay() + 6) % 7] + ')</b><b>' + esc(s.title) + '</b>'
+      + (s.time ? '<span class="num">' + esc(s.time) + '</span>' : "") + (s.rest ? ' <span class="role-badge">휴방</span>' : "") + (s.day < today ? ' <span class="sec-sub">지난 일정</span>' : "") + '</div></div>'
+      + '<div class="adm-acts"><button type="button" class="btn light" data-sdel>삭제</button></div></div>').join("") : '<p class="empty">적어 둔 특별 일정이 없어요</p>';
+    $("specialList").onclick = e => {
+      const b = e.target.closest("[data-sdel]"); if(!b || !confirmIn(b, "지울까요?")) return;
+      sb.from("schedule_special").delete().eq("id", Number(b.closest("[data-id]").dataset.id)).then(ok).then(loadSchedule).catch(fail);
+    };
+  }
+  $("weekForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const rows = Array.from(document.querySelectorAll("#weekRows .sch-row")).map(r => ({
+      dow: Number(r.dataset.dow), title: r.querySelector("[name=t]").value.trim() || (r.querySelector("[name=r]").checked ? "휴방" : ""),
+      time: r.querySelector("[name=h]").value.trim(), rest: r.querySelector("[name=r]").checked }));
+    sb.from("schedule_week").upsert(rows, { onConflict: "dow" }).then(ok).then(() => toast("고정 일정을 저장했어요")).catch(fail);
+  });
+  $("specialForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const f = e.target, row = { day: f.sDay.value, title: f.sTitle.value.trim(), time: f.sTime.value.trim(), rest: f.sRest.checked };
+    if(!row.day || !row.title) return toast("날짜와 내용을 적어 주세요");
+    sb.from("schedule_special").upsert(row, { onConflict: "day" }).then(ok)
+      .then(() => { f.sTitle.value = ""; f.sTime.value = ""; f.sRest.checked = false; toast("추가했어요"); return loadSchedule(); }).catch(fail);
+  });
 
   /* ── 신고 ── */
   let repFilter = "open";

@@ -69,7 +69,7 @@
     const slot = $("authSlot"); if(!slot) return;
     const u = B.user();
     slot.innerHTML = u
-      ? '<span><b>' + esc(u.nickname) + '</b>' + badge(u.role) + ' 님</span>' + (u.role === "admin" && page !== "admin" ? '<a class="text-btn" href="' + url("admin.html") + '">운영자 화면</a>' : "") + '<button type="button" class="text-btn" id="nickBtn">닉네임 변경</button><button type="button" class="text-btn" id="outBtn">로그아웃</button>'
+      ? '<span><b>' + esc(u.nickname) + '</b>' + badge(u.role) + ' 님</span>' + (u.role === "admin" && page !== "admin" ? '<a class="text-btn" href="' + url("admin.html") + '">운영자 화면</a>' : u.role === "streamer" && page !== "admin" ? '<a class="text-btn" href="' + url("admin.html#schedule") + '">일정표 수정</a>' : "") + '<button type="button" class="text-btn" id="nickBtn">닉네임 변경</button><button type="button" class="text-btn" id="outBtn">로그아웃</button>'
       : '<button type="button" class="btn light" id="inBtn">로그인</button>';
     if(u){ $("nickBtn").addEventListener("click", nickModal); $("outBtn").addEventListener("click", () => B.signOut()); }
     else $("inBtn").addEventListener("click", loginModal);
