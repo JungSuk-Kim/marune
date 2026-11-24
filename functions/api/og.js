@@ -44,6 +44,41 @@ function parse(html, base){
   };
 }
 
+const https = u => !u ? "" : String(u).replace(/^\/\//, "https://").replace(/^http:\/\//, "https://");
+const UA = { "user-agent": "Mozilla/5.0", "accept": "application/json" };
+
+/* 일반 페이지로는 제목이 안 나오는 사이트(유튜브·SOOP)는 각자 공개 정보에서 읽음 */
+async function special(t){
+  const h = t.hostname.replace(/^(www|m)\./, "");
+  if(h === "youtube.com" || h === "youtu.be" || h === "music.youtube.com"){
+    const r = await fetch("https://www.youtube.com/oembed?format=json&url=" + encodeURIComponent(t.toString()), { headers: UA });
+    if(!r.ok) return null;
+    const d = await r.json();
+    return { title: clip(decode(d.title), 120), description: d.author_name ? clip(decode(d.author_name), 80) : "", image: https(d.thumbnail_url), site: "YouTube" };
+  }
+  if(/^vod\.sooplive\.(com|co\.kr)$/.test(t.hostname)){
+    const no = (t.pathname.match(/\/player\/(\d+)/) || [])[1];
+    if(!no) return null;
+    const r = await fetch("https://api.m.sooplive.com/station/video/a/view", {
+      method: "POST", headers: Object.assign({ "content-type": "application/x-www-form-urlencoded", "origin": "https://vod.sooplive.com", "referer": "https://vod.sooplive.com/" }, UA),
+      body: "nTitleNo=" + no + "&nApiLevel=10&nPlaylistIdx=0"
+    });
+    const d = r.ok ? (await r.json()).data : null;
+    if(!d || !(d.full_title || d.title)) return null;
+    return { title: clip(decode(String(d.full_title || d.title).replace(/^\[(클립|캐치|다시보기)\]\s*/, "")), 120), description: d.writer_nick ? clip(decode(d.writer_nick), 60) : "", image: https(d.thumb), site: "SOOP" };
+  }
+  const st = h.match(/^(?:sooplive\.(?:com|co\.kr))$/) && (t.pathname.match(/^\/station\/([a-zA-Z0-9_]{2,30})/) || [])[1]
+    || /^(ch|play|bj)\.sooplive\.(com|co\.kr)$/.test(t.hostname) && (t.pathname.match(/^\/([a-zA-Z0-9_]{2,30})/) || [])[1];
+  if(st){
+    const r = await fetch("https://chapi.sooplive.com/api/" + st + "/station", { headers: UA });
+    const d = r.ok ? await r.json() : null;
+    if(!d || !d.station) return null;
+    const live = d.broad ? "방송 중 · " + decode(d.broad.broad_title || "") : decode((d.station.display || {}).profile_text || "");
+    return { title: clip(decode(d.station.station_name || d.station.user_nick || st) + " 방송국", 120), description: clip(live, 160), image: https(d.profile_image), site: "SOOP" };
+  }
+  return null;
+}
+
 export async function onRequestGet({ request, waitUntil }){
   const q = new URL(request.url).searchParams.get("url") || "";
   let target;
@@ -56,7 +91,8 @@ export async function onRequestGet({ request, waitUntil }){
   if(hit) return hit;
 
   let out;
-  try{
+  try{ const s = await special(target); if(s) out = Object.assign({ ok: true, url: target.toString() }, s); }catch(e){}
+  if(!out) try{
     const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 6000);
     const r = await fetch(target.toString(), {
       signal: ctl.signal, redirect: "follow",
