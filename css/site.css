@@ -760,3 +760,9 @@ a.post-row.soop-row:hover{background:#eaf7ef}
 .editor td,.editor th,.post-body.rich td,.post-body.rich th{border:1px solid var(--line);padding:6px 10px}
 .post-body.rich{white-space:pre-wrap}
 @media (max-width:640px){ .rt-bar .rt-txt{padding:0 7px;font-size:12px} .rt-pal{position:fixed;left:50%;top:auto;bottom:24px;transform:translateX(-50%);grid-template-columns:repeat(7,30px);gap:8px;padding:14px} .rt-pal button{width:30px!important;height:30px!important} .rt-custom{width:30px;height:30px} }
+/* 글 안 영상 */
+.lp-video{margin:12px 0;max-width:720px}
+.lp-video iframe{display:block;width:100%;aspect-ratio:16/9;border:0;border-radius:14px;background:#111;box-shadow:0 6px 18px rgba(42,35,64,.14)}
+.lp-video.tall{max-width:360px}
+.lp-video.tall iframe{aspect-ratio:9/16}
+.lp-src{display:inline-block;margin-top:6px;font-size:12px;color:var(--ink-3)!important;text-decoration:none!important}

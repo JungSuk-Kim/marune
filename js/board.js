@@ -196,9 +196,35 @@
       return null;
     }).catch(() => null));
   }
+  /* 글 안에서 바로 재생: 유튜브 · SOOP 다시보기/클립/캐치 */
+  function embedFor(u){
+    let t; try{ t = new URL(u); }catch(e){ return null; }
+    const host = t.hostname.replace(/^(www|m)\./, "");
+    let id = null, tall = false;
+    if(host === "youtu.be") id = t.pathname.slice(1).split("/")[0];
+    else if(host === "youtube.com" || host === "music.youtube.com"){
+      const m = t.pathname.match(/^\/(shorts|live|embed)\/([\w-]{6,})/);
+      if(m){ id = m[2]; tall = m[1] === "shorts"; } else id = t.searchParams.get("v");
+    }
+    if(id && /^[\w-]{6,20}$/.test(id)){
+      const start = parseInt(t.searchParams.get("t") || t.searchParams.get("start") || "0", 10) || 0;
+      return { src: "https://www.youtube-nocookie.com/embed/" + id + (start ? "?start=" + start : ""), tall };
+    }
+    if(/^vod\.sooplive\.(com|co\.kr)$/.test(t.hostname)){
+      const no = (t.pathname.match(/^\/player\/(\d+)/) || [])[1];
+      if(no) return { src: "https://vod.sooplive.com/player/" + no + "/embed?showChat=false&autoPlay=false&mutePlay=false", tall: /\/catch/.test(t.pathname) };
+    }
+    return null;
+  }
   function fillPreviews(root){
     root.querySelectorAll(".lp[data-url]").forEach(el => {
-      const u = el.dataset.url;
+      const u = el.dataset.url, em = embedFor(u);
+      if(em){
+        el.className = "lp-video" + (em.tall ? " tall" : "");
+        el.innerHTML = '<iframe src="' + esc(em.src) + '" title="영상" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>'
+          + '<a class="lp-src" href="' + esc(u) + '" target="_blank" rel="noopener nofollow ugc">원본에서 보기 ↗</a>';
+        return;
+      }
       fetchOg(u).then(d => {
         if(!d || !(d.title || d.image)) return;
         el.innerHTML = '<a class="lp-card' + (d.image ? "" : " no-img") + '" href="' + esc(u) + '" target="_blank" rel="noopener nofollow ugc">'
