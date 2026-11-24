@@ -190,7 +190,7 @@
     list: o => be.list(o || {}),
     get: id => be.get(Number(id)),
     create: o => {
-      const title = clean(o.title, 100), body = clean(o.body, 5000);
+      const title = clean(o.title, 100), body = clean(o.body, 30000);
       if(!title) return Promise.reject(new Error("제목을 써 주세요"));
       if(!body) return Promise.reject(new Error("내용을 써 주세요"));
       if(!api.canWrite(o.category)) return Promise.reject(new Error("이 게시판에는 글을 쓸 수 없어요"));

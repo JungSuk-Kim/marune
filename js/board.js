@@ -150,7 +150,24 @@
     s.replace(URL_RE, (m, i) => { out += esc(s.slice(last, i)) + '<a href="' + esc(m) + '" target="_blank" rel="noopener nofollow ugc">' + esc(m) + '</a>'; last = i + m.length; return m; });
     return out + esc(s.slice(last));
   };
+  /* 서식 있는 글: 걸러진 HTML + 글 속 주소 자동 링크 + 한 줄짜리 링크 미리보기 */
+  function renderRich(body){
+    const box = document.createElement("div");
+    box.innerHTML = RichText.sanitize(body.slice(RichText.MARK.length));
+    const w = document.createTreeWalker(box, NodeFilter.SHOW_TEXT), ts = [];
+    while(w.nextNode()) if(!w.currentNode.parentNode.closest("a") && URL_RE.test(w.currentNode.data)) ts.push(w.currentNode);
+    URL_RE.lastIndex = 0;
+    ts.forEach(t => { const span = document.createElement("span"); span.innerHTML = linkify(t.data); t.replaceWith(...span.childNodes); });
+    let n = 0;
+    box.querySelectorAll("div, p").forEach(el => {
+      if(n >= 5 || el.querySelector("img, div, p")) return;
+      const t = el.textContent.trim();
+      if(/^https?:\/\/\S+$/.test(t)){ n++; el.outerHTML = '<div class="lp" data-url="' + esc(t) + '"><a href="' + esc(t) + '" target="_blank" rel="noopener nofollow ugc">' + esc(t) + '</a></div>'; }
+    });
+    return box.innerHTML;
+  }
   function renderBody(text, withMedia){
+    if(withMedia && RichText.isRich(text)) return renderRich(text);
     const lines = String(text || "").split("\n"), html = [];
     let previews = 0;
     lines.forEach((raw, i) => {
@@ -198,11 +215,12 @@
     async function load(){
       let p;
       try{ p = await B.get(id); }catch(e){ p = null; }
+      if(p && RichText.isRich(p.body)) await RichText.ready().catch(() => {});
       if(!p){ $("post").innerHTML = '<p class="empty">없는 글이거나 삭제된 글이에요.</p><p style="text-align:center"><a class="btn light" href="' + url("board.html") + '">목록으로</a></p>'; $("commentBox").hidden = true; return; }
       document.title = p.title + " | " + S.siteName;
       $("post").innerHTML = '<div class="post-head">' + catChip(p.category) + '<h1>' + esc(p.title) + '</h1>'
         + '<div class="post-meta"><span>' + esc(p.author) + badge(p.authorRole) + '</span><span class="num">' + when(p.createdAt) + '</span><span class="num">조회 ' + p.views + '</span></div></div>'
-        + '<div class="post-body">' + renderBody(p.body, true) + '</div>'
+        + '<div class="post-body' + (RichText.isRich(p.body) ? " rich" : "") + '">' + renderBody(p.body, true) + '</div>'
         + '<div class="post-actions"><button type="button" class="btn light like-btn" id="likeBtn" aria-pressed="' + p.liked + '">추천 <b class="num" id="likeN">' + p.likes + '</b></button>'
         + '<a class="btn light" href="' + url("board.html") + '">목록</a>'
         + (B.canDelete(p) ? '<button type="button" class="btn light" id="delBtn">삭제</button>' : "") + '</div>';
@@ -250,14 +268,73 @@
       $("cat").innerHTML = allowed.map(b => '<option value="' + esc(b.id) + '"' + (b.id === want ? " selected" : "") + '>' + esc(b.label) + '</option>').join("");
     }
     $("loginHere").addEventListener("click", loginModal);
-    /* 본문 편집기: 글과 사진을 함께 넣고, 넣은 사진이 바로 보임.
-       저장할 때는 글은 그대로, 사진은 한 줄짜리 ![사진](주소) 로 바꿔서 보냄 */
-    const ed = $("body"), MAX_IMG = 10;
+    /* 본문 편집기: 글·사진·서식을 함께. 저장할 때는 걸러진 HTML 로 보냄 (앞에 <!--rich--> 표시) */
+    const ed = $("body"), MAX_IMG = 10, MAX_LEN = 30000;
+    RichText.ready().catch(err => toast(err.message));
+    try{ document.execCommand("defaultParagraphSeparator", false, "div"); }catch(e){}
     let lastRange = null;
     const keepRange = () => { const s = getSelection(); if(s.rangeCount && ed.contains(s.anchorNode)) lastRange = s.getRangeAt(0).cloneRange(); };
     ["keyup", "mouseup", "input", "focus"].forEach(t => ed.addEventListener(t, keepRange));
     document.addEventListener("selectionchange", keepRange);
-    const imgCount = () => ed.querySelectorAll(".ed-img").length;
+    const restore = () => { ed.focus(); if(lastRange){ const s = getSelection(); s.removeAllRanges(); s.addRange(lastRange); } };
+    const imgCount = () => ed.querySelectorAll(".ed-img, img").length;
+    const emptyCheck = () => ed.classList.toggle("has", !!(ed.textContent.trim() || ed.querySelector("img, .ed-img")));
+    const exec = (cmd, val, css) => { restore(); document.execCommand("styleWithCSS", false, !!css); document.execCommand(cmd, false, val); keepRange(); emptyCheck(); syncBar(); };
+
+    /* ── 서식 도구 ── */
+    const bar = $("rtBar");
+    const hdr = document.querySelector("header.site");
+    const stick = () => { bar.style.top = (hdr ? hdr.offsetHeight : 0) + "px"; };
+    stick(); addEventListener("resize", stick);
+    bar.addEventListener("mousedown", e => { if(e.target.closest("button")) e.preventDefault(); });   /* 눌러도 선택 영역 유지 */
+    bar.addEventListener("click", e => { const b = e.target.closest("[data-cmd]"); if(b) exec(b.dataset.cmd, null, false); });
+    /* 크기·글꼴: execCommand 가 만든 font 태그를 우리 값으로 바꿈 */
+    function wrapWith(cmd, marker, apply){
+      exec(cmd, marker, false);
+      const made = [];
+      ed.querySelectorAll(cmd === "fontSize" ? 'font[size="7"]' : 'font[face="' + marker + '"]').forEach(f => {
+        const sp = document.createElement("span"); apply(sp); while(f.firstChild) sp.appendChild(f.firstChild); f.replaceWith(sp); made.push(sp);
+        /* 안쪽에 남은 같은 종류 스타일은 지워서 새 값이 보이게 */
+        sp.querySelectorAll("span").forEach(x => { if(cmd === "fontSize") x.style.fontSize = ""; else x.style.fontFamily = ""; if(!x.getAttribute("style")) x.replaceWith(...x.childNodes); });
+      });
+      /* 바뀐 글자를 다시 선택해 두어 이어서 색·굵게 등을 줄 수 있게 */
+      if(made.length){
+        const r = document.createRange(); r.setStartBefore(made[0]); r.setEndAfter(made[made.length - 1]);
+        const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+      }
+      keepRange();
+    }
+    $("rtSize").addEventListener("change", e => { const v = e.target.value; if(v) wrapWith("fontSize", "7", sp => sp.style.fontSize = v); e.target.value = ""; });
+    $("rtFont").addEventListener("change", e => {
+      const k = e.target.value;
+      wrapWith("fontName", "marune-font", sp => { if(k) sp.style.fontFamily = RichText.FONTS[k]; });
+      ed.querySelectorAll("span:not([style])").forEach(x => x.replaceWith(...x.childNodes));
+      e.target.value = "";
+    });
+    /* 색 고르기 */
+    const COLORS = ["#2a2340", "#6b6480", "#e4487e", "#ff6b6b", "#ff9f43", "#f5b700", "#2f9c6c", "#16a3a3", "#3b8fd9", "#8b5cf6", "#c2410c", "#ffffff"];
+    const HILITE = ["#fff1a8", "#ffd6e5", "#d8f5e3", "#dbeafe", "#ede4ff", "#ffe2cc"];
+    function palette(btnId, palId, barId, list, cmd){
+      const pal = $(palId);
+      pal.innerHTML = list.map(c => '<button type="button" data-c="' + c + '" style="background:' + c + '" title="' + c + '"></button>').join("")
+        + (cmd === "hiliteColor" ? '<button type="button" data-c="transparent" class="none" title="없애기">✕</button>' : "")
+        + '<label class="rt-custom" title="직접 고르기">＋<input type="color"></label>';
+      $(btnId).addEventListener("mousedown", e => e.preventDefault());
+      $(btnId).addEventListener("click", () => { document.querySelectorAll(".rt-pal").forEach(p => { if(p !== pal) p.hidden = true; }); pal.hidden = !pal.hidden; });
+      pal.addEventListener("mousedown", e => { if(!e.target.closest("label")) e.preventDefault(); });
+      const apply = c => { exec(cmd, c, true); if(c !== "transparent") $(barId).style.background = c; pal.hidden = true; };
+      pal.addEventListener("click", e => { const b = e.target.closest("[data-c]"); if(b) apply(b.dataset.c); });
+      pal.querySelector("input").addEventListener("change", e => apply(e.target.value));
+    }
+    palette("rtColorBtn", "rtColorPal", "rtColorBar", COLORS, "foreColor");
+    palette("rtHiBtn", "rtHiPal", "rtHiBar", HILITE, "hiliteColor");
+    document.addEventListener("click", e => { if(!e.target.closest(".rt-pick")) document.querySelectorAll(".rt-pal").forEach(p => p.hidden = true); });
+    function syncBar(){
+      bar.querySelectorAll("[data-cmd]").forEach(b => { let on = false; try{ on = document.queryCommandState(b.dataset.cmd); }catch(e){} b.classList.toggle("on", on); });
+    }
+    document.addEventListener("selectionchange", () => { if(document.activeElement === ed) syncBar(); });
+
+    /* ── 사진 ── */
     async function shrink(file){
       if(file.type === "image/gif" && file.size <= 3 * 1024 * 1024) return file;
       const bmp = await createImageBitmap(file);
@@ -271,12 +348,10 @@
     function placeNode(node){
       let r = lastRange && ed.contains(lastRange.startContainer) ? lastRange : null;
       if(!r){ r = document.createRange(); r.selectNodeContents(ed); r.collapse(false); }
-      r.deleteContents();
-      r.insertNode(node);
-      const after = document.createElement("div"); after.appendChild(document.createElement("br"));
-      if(node.nextSibling && node.nextSibling.nodeName === "DIV") { /* 다음 줄이 이미 있음 */ } else node.after(after);
-      const nr = document.createRange(); const target = node.nextSibling || after;
-      nr.setStart(target, 0); nr.collapse(true);
+      r.deleteContents(); r.insertNode(node);
+      let next = node.nextSibling;
+      if(!next || next.nodeName !== "DIV"){ next = document.createElement("div"); next.appendChild(document.createElement("br")); node.after(next); }
+      const nr = document.createRange(); nr.setStart(next, 0); nr.collapse(true);
       const sel = getSelection(); sel.removeAllRanges(); sel.addRange(nr); lastRange = nr.cloneRange();
     }
     function makeFigure(src){
@@ -289,7 +364,7 @@
     async function addImages(files){
       files = Array.from(files || []).filter(f => /^image\//.test(f.type));
       if(!files.length) return;
-      if(imgCount() + files.length > MAX_IMG) return toast("사진은 한 글에 " + MAX_IMG + "장까지 넣을 수 있어요");
+      if(ed.querySelectorAll(".ed-img").length + files.length > MAX_IMG) return toast("사진은 한 글에 " + MAX_IMG + "장까지 넣을 수 있어요");
       $("submitBtn").disabled = true;
       for(const file of files){
         const ph = placeholder(); placeNode(ph);
@@ -300,40 +375,49 @@
           ph.replaceWith(makeFigure(src));
         }catch(err){ ph.remove(); toast(err.message || "사진을 올리지 못했어요"); }
       }
-      $("submitBtn").disabled = false;
-      ed.classList.toggle("has", true);
+      $("submitBtn").disabled = false; emptyCheck();
     }
-    ed.addEventListener("click", e => { const x = e.target.closest(".ed-x"); if(x){ x.closest(".ed-img").remove(); } });
-    /* 글로 바꾸기 */
-    function serialize(node){
-      let out = "";
-      node.childNodes.forEach(c => {
-        if(c.nodeType === 3) out += c.data.replace(/ /g, " ");
-        else if(c.nodeName === "BR") out += "\n";
-        else if(c.classList && c.classList.contains("ed-img")){ if(c.dataset.src) out += (out && !out.endsWith("\n") ? "\n" : "") + "![사진](" + c.dataset.src + ")\n"; }
-        else if(/^(DIV|P)$/.test(c.nodeName)){ const inner = serialize(c); out += (out && !out.endsWith("\n") ? "\n" : "") + (inner.endsWith("\n") ? inner : inner + "\n"); }
-        else out += serialize(c);
-      });
-      return out;
-    }
-    toBody = () => serialize(ed).replace(/\n{3,}/g, "\n\n").trim();
+    ed.addEventListener("click", e => { const x = e.target.closest(".ed-x"); if(x){ x.closest(".ed-img").remove(); emptyCheck(); } });
     $("imgBtn").addEventListener("click", () => { keepRange(); $("imgInput").click(); });
     $("imgInput").addEventListener("change", e => { addImages(e.target.files); e.target.value = ""; });
-    ed.addEventListener("paste", e => {
+
+    /* ── 붙여 넣기: 서식 그대로 (걸러서) ── */
+    ed.addEventListener("paste", async e => {
       const cd = e.clipboardData; if(!cd) return;
-      const files = Array.from(cd.files || []);
+      const files = Array.from(cd.files || []), html = cd.getData("text/html"), text = cd.getData("text/plain");
       e.preventDefault();
-      if(files.some(f => /^image\//.test(f.type))) return addImages(files);
-      document.execCommand("insertText", false, cd.getData("text/plain"));   /* 다른 곳 서식은 빼고 글자만 */
+      if(files.some(f => /^image\//.test(f.type)) && !html) return addImages(files);
+      if(html){
+        try{
+          await RichText.ready();
+          const clean = RichText.sanitize(html.replace(/<!--[\s\S]*?-->/g, ""), { paste: true });
+          restore(); document.execCommand("insertHTML", false, clean || "");
+          if(/<img/i.test(html) && !/<img/i.test(clean)) toast("붙여 넣은 사진 중 일부는 넣을 수 없어서 뺐어요. 사진은 📷 사진으로 올려 주세요");
+        }catch(err){ document.execCommand("insertText", false, text); }
+      }else document.execCommand("insertText", false, text);
+      keepRange(); emptyCheck();
     });
     ed.addEventListener("dragover", e => { if(e.dataTransfer && Array.from(e.dataTransfer.types).includes("Files")) e.preventDefault(); });
     ed.addEventListener("drop", e => { if(e.dataTransfer && e.dataTransfer.files.length){ e.preventDefault(); addImages(e.dataTransfer.files); } });
-    const emptyCheck = () => ed.classList.toggle("has", !!(ed.textContent.trim() || imgCount()));
+
+    /* ── 저장 형식 ── */
+    toBody = () => {
+      const c = ed.cloneNode(true);
+      c.querySelectorAll(".ed-img.loading").forEach(x => x.remove());
+      c.querySelectorAll(".ed-img").forEach(f => { const img = document.createElement("img"); img.src = f.dataset.src; img.alt = "사진"; const d = document.createElement("div"); d.appendChild(img); f.replaceWith(d); });
+      if(!c.textContent.trim() && !c.querySelector("img")) return "";
+      const html = RichText.sanitize(c.innerHTML).replace(/(<div><br><\/div>\s*){3,}/g, "<div><br></div><div><br></div>");
+      const out = RichText.MARK + html;
+      if(out.length > MAX_LEN){ toast("글이 너무 길어요. 서식이 많은 글은 조금 나눠서 올려 주세요"); return null; }
+      return out;
+    };
     ed.addEventListener("input", emptyCheck);
     $("writeForm").addEventListener("submit", e => {
       e.preventDefault();
       const btn = $("submitBtn"); btn.disabled = true;
-      B.create({ category: $("cat").value, title: $("title").value, body: toBody() })
+      const body = toBody();
+      if(body === null){ btn.disabled = false; return; }
+      B.create({ category: $("cat").value, title: $("title").value, body })
         .then(id => { location.href = url("post.html?id=" + id); })
         .catch(err => { toast(err.message); btn.disabled = false; });
     });

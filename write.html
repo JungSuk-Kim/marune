@@ -29,7 +29,27 @@
       <div class="form-row"><label for="cat">게시판</label><select class="field" id="cat" style="max-width:220px"></select></div>
       <div class="form-row"><label for="title">제목</label><input class="field" id="title" maxlength="100" required></div>
       <div class="form-row"><label for="body">내용</label>
-        <div class="write-tools"><button type="button" class="btn light small" id="imgBtn">📷 사진 넣기</button><input type="file" id="imgInput" accept="image/*" multiple hidden><span class="sec-sub">사진은 붙여 넣기·끌어 놓기로도 넣을 수 있어요 · 링크를 한 줄에 따로 쓰면 미리보기가 나와요</span></div>
+        <div class="rt-bar" id="rtBar" role="toolbar" aria-label="글 서식">
+          <select id="rtFont" title="글꼴"><option value="">기본 글꼴</option><option value="gothic">고딕</option><option value="hand">손글씨</option><option value="serif">명조</option></select>
+          <select id="rtSize" title="글자 크기"><option value="">크기</option><option value="13px">작게</option><option value="15px">보통</option><option value="18px">크게</option><option value="24px">아주 크게</option><option value="32px">제목</option></select>
+          <span class="rt-sep"></span>
+          <button type="button" data-cmd="bold" title="굵게"><b>B</b></button>
+          <button type="button" data-cmd="italic" title="기울임"><i>I</i></button>
+          <button type="button" data-cmd="underline" title="밑줄"><u>U</u></button>
+          <button type="button" data-cmd="strikeThrough" title="취소선"><s>S</s></button>
+          <span class="rt-sep"></span>
+          <span class="rt-pick"><button type="button" id="rtColorBtn" title="글자색" class="rt-c">A<i id="rtColorBar" style="background:#e4487e"></i></button><div class="rt-pal" id="rtColorPal" hidden></div></span>
+          <span class="rt-pick"><button type="button" id="rtHiBtn" title="형광펜" class="rt-c rt-hi">A<i id="rtHiBar" style="background:#fff1a8"></i></button><div class="rt-pal" id="rtHiPal" hidden></div></span>
+          <span class="rt-sep"></span>
+          <button type="button" data-cmd="justifyLeft" title="왼쪽 정렬"><svg viewBox="0 0 20 20"><path d="M3 4h14M3 8h9M3 12h14M3 16h9"/></svg></button>
+          <button type="button" data-cmd="justifyCenter" title="가운데 정렬"><svg viewBox="0 0 20 20"><path d="M3 4h14M5.5 8h9M3 12h14M5.5 16h9"/></svg></button>
+          <button type="button" data-cmd="justifyRight" title="오른쪽 정렬"><svg viewBox="0 0 20 20"><path d="M3 4h14M8 8h9M3 12h14M8 16h9"/></svg></button>
+          <button type="button" data-cmd="insertUnorderedList" title="목록"><svg viewBox="0 0 20 20"><path d="M8 5h9M8 10h9M8 15h9"/><circle cx="4" cy="5" r="1.2"/><circle cx="4" cy="10" r="1.2"/><circle cx="4" cy="15" r="1.2"/></svg></button>
+          <button type="button" data-cmd="removeFormat" title="서식 지우기" class="rt-txt">서식 지우기</button>
+          <span class="rt-sep"></span>
+          <button type="button" id="imgBtn" class="rt-txt">📷 사진</button><input type="file" id="imgInput" accept="image/*" multiple hidden>
+        </div>
+        <p class="sec-sub rt-help">다른 곳에서 복사한 글은 글씨 크기·색·정렬까지 그대로 들어가요 · 사진은 붙여 넣기·끌어 놓기로도 넣을 수 있어요</p>
         <div class="field editor" id="body" contenteditable="true" role="textbox" aria-multiline="true" aria-label="내용" data-ph="내용을 써 주세요"></div></div>
       <div style="display:flex;gap:8px;justify-content:flex-end"><a class="btn light" href="board.html">취소</a><button type="submit" class="btn cherry" id="submitBtn">등록</button></div>
     </form>
@@ -40,6 +60,7 @@
 <script src="data/content.js"></script>
 <script src="js/site.js"></script>
 <script src="js/board-store.js"></script>
+<script src="js/richtext.js"></script>
 <script src="js/board.js"></script>
 </body>
 </html>

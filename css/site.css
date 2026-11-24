@@ -724,3 +724,39 @@ a.post-row.soop-row:hover{background:#eaf7ef}
 .ed-img img{display:block;max-width:100%;max-height:420px;border-radius:12px;box-shadow:0 3px 10px rgba(42,35,64,.1)}
 .ed-x{position:absolute;top:8px;right:8px;width:28px;height:28px;border:0;border-radius:50%;background:rgba(42,35,64,.75);color:#fff;font-size:17px;line-height:1;cursor:pointer}
 .ed-img.loading{width:220px;height:140px;border-radius:12px;background:var(--tint);display:grid;place-items:center;font-size:13px;color:var(--ink-2);animation:blink 1.2s infinite}
+
+/* 서식 도구 */
+.rt-bar{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:6px;border:1px solid var(--line);border-bottom:0;border-radius:14px 14px 0 0;background:var(--surface);position:sticky;top:64px;z-index:5}
+.rt-bar + .rt-help{margin:0;padding:6px 10px;font-size:12px;border-left:1px solid var(--line);border-right:1px solid var(--line);background:var(--tint)}
+.rt-bar select{height:34px;border:1px solid var(--line);border-radius:9px;background:#fff;padding:0 8px;font-size:13px;color:var(--ink)}
+.rt-bar button{min-width:34px;height:34px;border:0;border-radius:9px;background:none;color:var(--ink);font-size:15px;display:inline-grid;place-items:center;cursor:pointer;position:relative;padding:0 6px}
+.rt-bar button:hover{background:var(--tint)}
+.rt-bar button.on{background:#fde7ef;color:var(--cherry)}
+.rt-bar button.rt-txt{font-size:13px;font-weight:600;padding:0 10px}
+.rt-bar svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;fill:none}
+.rt-bar svg circle{fill:currentColor;stroke:none}
+.rt-sep{width:1px;height:22px;background:var(--line);margin:0 3px}
+.rt-c{font-weight:800}
+.rt-c i{position:absolute;left:8px;right:8px;bottom:5px;height:4px;border-radius:2px}
+.rt-hi{font-weight:700}
+.rt-pick{position:relative}
+.rt-pal{position:absolute;top:40px;left:0;z-index:20;display:grid;grid-template-columns:repeat(6,26px);gap:6px;padding:10px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(42,35,64,.15)}
+.rt-pal[hidden]{display:none}
+.rt-pal button{width:26px!important;min-width:0!important;height:26px!important;border-radius:50%!important;border:1px solid rgba(0,0,0,.12)!important;padding:0!important}
+.rt-pal button.none{background:#fff!important;font-size:12px;color:var(--ink-3)}
+.rt-custom{width:26px;height:26px;border-radius:50%;border:1px dashed var(--ink-3);display:grid;place-items:center;font-size:14px;color:var(--ink-2);cursor:pointer;position:relative;overflow:hidden}
+.rt-custom input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.rt-bar ~ .editor{border-radius:0 0 14px 14px}
+
+/* 서식 있는 글 (편집기·글 보기 공통) */
+.editor ul,.post-body.rich ul,.editor ol,.post-body.rich ol{padding-left:1.4em;margin:4px 0}
+.editor blockquote,.post-body.rich blockquote{margin:8px 0;padding:6px 14px;border-left:4px solid var(--line);color:var(--ink-2)}
+.editor h1,.post-body.rich h1{font-size:28px}.editor h2,.post-body.rich h2{font-size:23px}.editor h3,.post-body.rich h3{font-size:19px}
+.editor h1,.editor h2,.editor h3,.post-body.rich h1,.post-body.rich h2,.post-body.rich h3{margin:10px 0 6px;line-height:1.35}
+.editor p,.post-body.rich p{margin:0 0 6px}
+.editor img,.post-body.rich img{max-width:100%;height:auto;border-radius:12px}
+.post-body.rich img{display:inline-block;margin:6px 0;box-shadow:0 4px 14px rgba(42,35,64,.1);max-height:900px}
+.editor table,.post-body.rich table{border-collapse:collapse;max-width:100%;margin:8px 0;display:block;overflow-x:auto}
+.editor td,.editor th,.post-body.rich td,.post-body.rich th{border:1px solid var(--line);padding:6px 10px}
+.post-body.rich{white-space:pre-wrap}
+@media (max-width:640px){ .rt-bar .rt-txt{padding:0 7px;font-size:12px} .rt-pal{position:fixed;left:50%;top:auto;bottom:24px;transform:translateX(-50%);grid-template-columns:repeat(7,30px);gap:8px;padding:14px} .rt-pal button{width:30px!important;height:30px!important} .rt-custom{width:30px;height:30px} }

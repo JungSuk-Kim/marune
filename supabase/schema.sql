@@ -15,7 +15,7 @@ create table if not exists public.posts (
   id bigint generated always as identity primary key,
   category text not null check (category in ('notice', 'free', 'diary')),
   title text not null check (char_length(title) between 1 and 100),
-  body text not null check (char_length(body) between 1 and 5000),
+  body text not null check (char_length(body) between 1 and 30000),  -- 서식 있는 글(HTML)까지 담을 수 있게
   author_id uuid not null,
   created_at timestamptz not null default now(),
   views integer not null default 0,
@@ -206,3 +206,7 @@ grant execute on function public.my_role() to anon, authenticated;
 -- 먼저 사이트에 한 번 로그인한 뒤, 아래에서 닉네임을 바꿔 실행하세요.
 -- update public.profiles set role = 'admin' where nickname = '내닉네임';
 -- update public.profiles set role = 'streamer' where nickname = '마루닉네임';
+
+-- 서식 있는 글을 쓰도록 본문 길이 늘림 (이미 만든 DB 에도 적용)
+alter table public.posts drop constraint if exists posts_body_check;
+alter table public.posts add constraint posts_body_check check (char_length(body) between 1 and 30000);
