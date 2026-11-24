@@ -252,9 +252,20 @@
   /* ───────── 글 보기 ───────── */
   function initPost(){
     const id = Number(params.get("id"));
+    /* 조회수: 이 기기에서 같은 글은 하루 한 번만 셈 (새로고침·로그인 상태 바뀜으로 다시 세지 않음) */
+    let counted = false;
+    function shouldCount(){
+      if(counted) return false;
+      counted = true;
+      const seen = window.CM.store.get("post-seen", {}), now = Date.now();
+      Object.keys(seen).forEach(k => { if(now - seen[k] > 86400000) delete seen[k]; });
+      if(seen[id]){ window.CM.store.set("post-seen", seen); return false; }
+      seen[id] = now; window.CM.store.set("post-seen", seen);
+      return true;
+    }
     async function load(){
       let p;
-      try{ p = await B.get(id); }catch(e){ p = null; }
+      try{ p = await B.get(id, { raw: !shouldCount() }); }catch(e){ p = null; }
       if(p && RichText.isRich(p.body)) await RichText.ready().catch(() => {});
       if(!p){ $("post").innerHTML = '<p class="empty">없는 글이거나 삭제된 글이에요.</p><p style="text-align:center"><a class="btn light" href="' + url("board.html") + '">목록으로</a></p>'; $("commentBox").hidden = true; return; }
       document.title = p.title + " | " + S.siteName;
