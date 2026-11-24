@@ -715,3 +715,12 @@ a.post-row.soop-row:hover{background:#eaf7ef}
 .img-thumb img{width:100%;height:100%;object-fit:cover}
 .img-thumb em{position:absolute;left:4px;bottom:4px;font-style:normal;font-size:10px;font-weight:800;color:#fff;background:rgba(42,35,64,.7);border-radius:6px;padding:1px 5px}
 .img-thumb button{position:absolute;top:3px;right:3px;width:22px;height:22px;border:0;border-radius:50%;background:rgba(42,35,64,.7);color:#fff;font-size:14px;line-height:1;cursor:pointer}
+
+/* 본문 편집기 */
+.editor{min-height:260px;max-height:70vh;overflow-y:auto;line-height:1.7;white-space:pre-wrap;word-break:break-word;cursor:text;outline:none}
+.editor:not(.has):empty::before,.editor:not(.has)::before{content:attr(data-ph);color:var(--ink-3);pointer-events:none}
+.editor.has::before{content:none}
+.ed-img{position:relative;display:block;margin:10px 0;max-width:100%;width:fit-content;user-select:none}
+.ed-img img{display:block;max-width:100%;max-height:420px;border-radius:12px;box-shadow:0 3px 10px rgba(42,35,64,.1)}
+.ed-x{position:absolute;top:8px;right:8px;width:28px;height:28px;border:0;border-radius:50%;background:rgba(42,35,64,.75);color:#fff;font-size:17px;line-height:1;cursor:pointer}
+.ed-img.loading{width:220px;height:140px;border-radius:12px;background:var(--tint);display:grid;place-items:center;font-size:13px;color:var(--ink-2);animation:blink 1.2s infinite}

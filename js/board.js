@@ -250,11 +250,14 @@
       $("cat").innerHTML = allowed.map(b => '<option value="' + esc(b.id) + '"' + (b.id === want ? " selected" : "") + '>' + esc(b.label) + '</option>').join("");
     }
     $("loginHere").addEventListener("click", loginModal);
-    /* 사진 넣기: 긴 변 1600px, webp 로 줄여서 올림 (움직이는 gif 는 그대로).
-       글쓰기 칸에는 [사진1] 처럼 짧게만 보이고, 등록할 때 실제 사진 주소로 바뀜 */
-    const ta = $("body"), MAX_IMG = 10, imgs = [];
-    const TOKEN = /^\[사진(\d+)\]$/;
-    const tokensIn = () => ta.value.split("\n").map(l => (l.trim().match(TOKEN) || [])[1]).filter(n => n && imgs[n - 1]).map(Number);
+    /* 본문 편집기: 글과 사진을 함께 넣고, 넣은 사진이 바로 보임.
+       저장할 때는 글은 그대로, 사진은 한 줄짜리 ![사진](주소) 로 바꿔서 보냄 */
+    const ed = $("body"), MAX_IMG = 10;
+    let lastRange = null;
+    const keepRange = () => { const s = getSelection(); if(s.rangeCount && ed.contains(s.anchorNode)) lastRange = s.getRangeAt(0).cloneRange(); };
+    ["keyup", "mouseup", "input", "focus"].forEach(t => ed.addEventListener(t, keepRange));
+    document.addEventListener("selectionchange", keepRange);
+    const imgCount = () => ed.querySelectorAll(".ed-img").length;
     async function shrink(file){
       if(file.type === "image/gif" && file.size <= 3 * 1024 * 1024) return file;
       const bmp = await createImageBitmap(file);
@@ -265,50 +268,68 @@
       if(!blob || blob.type !== "image/webp") return new Promise(r => c.toBlob(r, "image/jpeg", .85));
       return blob;
     }
-    function insertAtCursor(text){
-      const s = ta.selectionStart, e = ta.selectionEnd, v = ta.value;
-      const before = v.slice(0, s), after = v.slice(e);
-      const pre = before && !before.endsWith("\n") ? "\n" : "", post = after.startsWith("\n") ? "" : "\n";
-      ta.value = before + pre + text + post + after;
-      const pos = (before + pre + text + post).length; ta.setSelectionRange(pos, pos); ta.focus();
-      strip();
+    function placeNode(node){
+      let r = lastRange && ed.contains(lastRange.startContainer) ? lastRange : null;
+      if(!r){ r = document.createRange(); r.selectNodeContents(ed); r.collapse(false); }
+      r.deleteContents();
+      r.insertNode(node);
+      const after = document.createElement("div"); after.appendChild(document.createElement("br"));
+      if(node.nextSibling && node.nextSibling.nodeName === "DIV") { /* 다음 줄이 이미 있음 */ } else node.after(after);
+      const nr = document.createRange(); const target = node.nextSibling || after;
+      nr.setStart(target, 0); nr.collapse(true);
+      const sel = getSelection(); sel.removeAllRanges(); sel.addRange(nr); lastRange = nr.cloneRange();
     }
+    function makeFigure(src){
+      const f = document.createElement("figure");
+      f.className = "ed-img"; f.contentEditable = "false"; f.dataset.src = src;
+      f.innerHTML = '<img src="' + esc(src) + '" alt="첨부 사진"><button type="button" class="ed-x" aria-label="사진 빼기">×</button>';
+      return f;
+    }
+    function placeholder(){ const f = document.createElement("figure"); f.className = "ed-img loading"; f.contentEditable = "false"; f.innerHTML = '<span>사진 올리는 중…</span>'; return f; }
     async function addImages(files){
       files = Array.from(files || []).filter(f => /^image\//.test(f.type));
       if(!files.length) return;
-      if(tokensIn().length + files.length > MAX_IMG) return toast("사진은 한 글에 " + MAX_IMG + "장까지 넣을 수 있어요");
-      const btn = $("imgBtn"); btn.disabled = true; $("submitBtn").disabled = true;
-      try{
-        for(let i = 0; i < files.length; i++){
-          btn.textContent = "올리는 중… " + (i + 1) + "/" + files.length;
-          const blob = await shrink(files[i]);
-          if(blob.size > 3 * 1024 * 1024){ toast("사진이 너무 커요 (3MB까지)"); continue; }
-          imgs.push(await B.uploadImage(blob));
-          insertAtCursor("[사진" + imgs.length + "]");
-        }
-      }catch(err){ toast(err.message || "사진을 올리지 못했어요"); }
-      btn.disabled = false; btn.textContent = "📷 사진 넣기"; $("submitBtn").disabled = false;
+      if(imgCount() + files.length > MAX_IMG) return toast("사진은 한 글에 " + MAX_IMG + "장까지 넣을 수 있어요");
+      $("submitBtn").disabled = true;
+      for(const file of files){
+        const ph = placeholder(); placeNode(ph);
+        try{
+          const blob = await shrink(file);
+          if(blob.size > 3 * 1024 * 1024){ toast("사진이 너무 커요 (3MB까지)"); ph.remove(); continue; }
+          const src = await B.uploadImage(blob);
+          ph.replaceWith(makeFigure(src));
+        }catch(err){ ph.remove(); toast(err.message || "사진을 올리지 못했어요"); }
+      }
+      $("submitBtn").disabled = false;
+      ed.classList.toggle("has", true);
     }
-    function strip(){
-      $("imgStrip").innerHTML = tokensIn().map(n => '<span class="img-thumb"><img src="' + esc(imgs[n - 1]) + '" alt=""><em>사진' + n + '</em><button type="button" data-rm="' + n + '" aria-label="사진' + n + ' 빼기">×</button></span>').join("");
+    ed.addEventListener("click", e => { const x = e.target.closest(".ed-x"); if(x){ x.closest(".ed-img").remove(); } });
+    /* 글로 바꾸기 */
+    function serialize(node){
+      let out = "";
+      node.childNodes.forEach(c => {
+        if(c.nodeType === 3) out += c.data.replace(/ /g, " ");
+        else if(c.nodeName === "BR") out += "\n";
+        else if(c.classList && c.classList.contains("ed-img")){ if(c.dataset.src) out += (out && !out.endsWith("\n") ? "\n" : "") + "![사진](" + c.dataset.src + ")\n"; }
+        else if(/^(DIV|P)$/.test(c.nodeName)){ const inner = serialize(c); out += (out && !out.endsWith("\n") ? "\n" : "") + (inner.endsWith("\n") ? inner : inner + "\n"); }
+        else out += serialize(c);
+      });
+      return out;
     }
-    $("imgStrip").addEventListener("click", e => {
-      const b = e.target.closest("[data-rm]"); if(!b) return;
-      const n = b.dataset.rm;
-      ta.value = ta.value.split("\n").filter(l => l.trim() !== "[사진" + n + "]").join("\n");
-      strip();
-    });
-    /* 등록할 때 [사진N] → 실제 사진 */
-    toBody = () => ta.value.split("\n").map(l => { const m = l.trim().match(TOKEN); return m && imgs[m[1] - 1] ? "![사진](" + imgs[m[1] - 1] + ")" : l; }).join("\n");
-    $("imgBtn").addEventListener("click", () => $("imgInput").click());
+    toBody = () => serialize(ed).replace(/\n{3,}/g, "\n\n").trim();
+    $("imgBtn").addEventListener("click", () => { keepRange(); $("imgInput").click(); });
     $("imgInput").addEventListener("change", e => { addImages(e.target.files); e.target.value = ""; });
-    ta.addEventListener("paste", e => {
-      const files = Array.from((e.clipboardData && e.clipboardData.files) || []);
-      if(files.some(f => /^image\//.test(f.type))){ e.preventDefault(); addImages(files); }
+    ed.addEventListener("paste", e => {
+      const cd = e.clipboardData; if(!cd) return;
+      const files = Array.from(cd.files || []);
+      e.preventDefault();
+      if(files.some(f => /^image\//.test(f.type))) return addImages(files);
+      document.execCommand("insertText", false, cd.getData("text/plain"));   /* 다른 곳 서식은 빼고 글자만 */
     });
-    ta.addEventListener("dragover", e => { if(e.dataTransfer && Array.from(e.dataTransfer.types).includes("Files")) e.preventDefault(); });
-    ta.addEventListener("drop", e => { if(e.dataTransfer && e.dataTransfer.files.length){ e.preventDefault(); addImages(e.dataTransfer.files); } });
-    ta.addEventListener("input", strip);
+    ed.addEventListener("dragover", e => { if(e.dataTransfer && Array.from(e.dataTransfer.types).includes("Files")) e.preventDefault(); });
+    ed.addEventListener("drop", e => { if(e.dataTransfer && e.dataTransfer.files.length){ e.preventDefault(); addImages(e.dataTransfer.files); } });
+    const emptyCheck = () => ed.classList.toggle("has", !!(ed.textContent.trim() || imgCount()));
+    ed.addEventListener("input", emptyCheck);
     $("writeForm").addEventListener("submit", e => {
       e.preventDefault();
       const btn = $("submitBtn"); btn.disabled = true;
