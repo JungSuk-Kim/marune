@@ -50,8 +50,8 @@
   }
 
   const TAGS = ["p", "div", "br", "span", "b", "strong", "i", "em", "u", "s", "strike", "del", "font", "h1", "h2", "h3", "h4", "ul", "ol", "li",
-    "blockquote", "a", "img", "hr", "table", "thead", "tbody", "tr", "td", "th", "sub", "sup", "mark", "pre", "code"];
-  const ATTR = ["href", "src", "alt", "style", "color", "face", "size", "align", "colspan", "rowspan"];
+    "blockquote", "a", "img", "hr", "table", "thead", "tbody", "tr", "td", "th", "sub", "sup", "mark", "pre", "code", "video"];
+  const ATTR = ["href", "src", "alt", "style", "color", "face", "size", "align", "colspan", "rowspan", "controls", "preload", "playsinline"];
 
   /* html 문자열 → 걸러진 html 문자열 */
   function sanitize(html, opts){
@@ -79,6 +79,14 @@
         const h = el.getAttribute("href") || "";
         if(!/^(https?:|mailto:)/i.test(h)){ el.replaceWith(...el.childNodes); return; }
         el.setAttribute("target", "_blank"); el.setAttribute("rel", "noopener nofollow ugc");
+      }
+      if(tag === "video"){ /* 이 사이트에 올린 영상(/v/...)만 */
+        const src = el.getAttribute("src") || "";
+        if(!/^\/v\/[0-9a-f-]{36}\/\d{8}-[0-9a-f]{8}\.(mp4|webm|mov)$/.test(src)){ el.remove(); return; }
+        [...el.attributes].forEach(a => { if(a.name !== "src") el.removeAttribute(a.name); });
+        el.setAttribute("controls", ""); el.setAttribute("preload", "metadata"); el.setAttribute("playsinline", "");
+        el.innerHTML = "";
+        return;
       }
       if(tag === "img"){
         const src = el.getAttribute("src") || "";

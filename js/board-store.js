@@ -61,6 +61,8 @@
         return Object.assign(view(p), { body: p.body, liked: !!me && db.likes.some(l => l.postId === id && l.uid === me.id) });
       },
       /* 체험 모드: 사진을 이 기기 안에만 담아 둠 */
+      token: async () => null,
+      removeImages: async () => {},
       uploadImage: blob => new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => no(new Error("사진을 읽지 못했어요")); r.readAsDataURL(blob); }),
       create: async ({ category, title, body }) => {
         const p = { id: db.seq++, category, title, body, author: me.nickname, role: me.role, uid: me.id, createdAt: Date.now(), views: 0, likes: 0 };
@@ -133,6 +135,8 @@
         if(me){ const l = await sb.from("post_likes").select("post_id").eq("post_id", id).eq("user_id", me.id).maybeSingle(); liked = !!l.data; }
         return Object.assign(row(r.data), { body: r.data.body, liked });
       },
+      token: async () => { const s = await sb.auth.getSession(); return s && s.data && s.data.session ? s.data.session.access_token : null; },
+      removeImages: async paths => { if(paths.length) await sb.storage.from("post-images").remove(paths); },
       uploadImage: async blob => {
         const ext = (blob.type.split("/")[1] || "webp").replace("jpeg", "jpg");
         const path = me.id + "/" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8) + "." + ext;
@@ -198,6 +202,17 @@
     },
     uploadImage: blob => be.user() ? be.uploadImage(blob) : Promise.reject(new Error("로그인한 뒤 사진을 올릴 수 있어요")),
     /* 글 안에서 사진으로 보여줄 주소: 이 사이트 저장소(또는 체험 모드의 기기 안 사진)만 */
+    token: () => be.token(),
+    /* 글을 지울 때 그 글에 올린 사진·영상 파일도 함께 지움 (실패해도 글 삭제는 그대로) */
+    removeMedia: async body => {
+      body = String(body || "");
+      const base = S.supabaseUrl ? S.supabaseUrl.replace(/\/$/, "") + "/storage/v1/object/public/post-images/" : null;
+      const imgs = base ? Array.from(new Set((body.match(/https:\/\/[^\s"'<>)]+/g) || []).filter(u => u.indexOf(base) === 0).map(u => decodeURIComponent(u.slice(base.length))))) : [];
+      const vids = Array.from(new Set((body.match(/\/v\/([0-9a-f-]{36}\/\d{8}-[0-9a-f]{8}\.(?:mp4|webm|mov))/g) || []).map(s => s.slice(3))));
+      try{ await be.removeImages(imgs); }catch(e){}
+      const t = await be.token().catch(() => null);
+      if(t) await Promise.all(vids.map(k => fetch(url("api/video?key=" + encodeURIComponent(k)), { method: "DELETE", headers: { authorization: "Bearer " + t } }).catch(() => {})));
+    },
     isOwnImage: src => /^data:image\//.test(src) || (!!S.supabaseUrl && src.indexOf(S.supabaseUrl.replace(/\/$/, "") + "/storage/v1/object/public/post-images/") === 0),
     remove: id => be.remove(Number(id)),
     comments: id => be.comments(Number(id)),

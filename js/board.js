@@ -257,7 +257,7 @@
       fillPreviews($("post"));
       const del = $("delBtn");
       if(del) del.addEventListener("click", () => modal('<h3>글을 삭제할까요?</h3><p>삭제하면 되돌릴 수 없어요.</p><button type="button" class="btn cherry" id="yes">삭제</button><button type="button" class="btn light" data-close>취소</button>',
-        el => el.querySelector("#yes").addEventListener("click", () => B.remove(id).then(() => { location.href = url("board.html"); }).catch(e => toast(e.message)))));
+        el => el.querySelector("#yes").addEventListener("click", () => B.remove(id).then(() => B.removeMedia(p.body)).then(() => { location.href = url("board.html"); }).catch(e => toast(e.message)))));
       loadComments();
     }
     async function loadComments(){
@@ -404,6 +404,41 @@
       $("submitBtn").disabled = false; emptyCheck();
     }
     ed.addEventListener("click", e => { const x = e.target.closest(".ed-x"); if(x){ x.closest(".ed-img").remove(); emptyCheck(); } });
+
+    /* ── 영상: 50MB, 한 글에 2개. 서버(/api/video)가 하루·전체 한도를 다시 확인 ── */
+    const MAX_VID = 2, VID_SIZE = 50 * 1024 * 1024;
+    function uploadVideo(file, token, onProgress){
+      return new Promise((ok, no) => {
+        const x = new XMLHttpRequest();
+        x.open("POST", url("api/video"));
+        x.setRequestHeader("authorization", "Bearer " + token);
+        x.setRequestHeader("content-type", file.type);
+        x.upload.onprogress = e => { if(e.lengthComputable) onProgress(Math.round(e.loaded / e.total * 100)); };
+        x.onload = () => { let d = null; try{ d = JSON.parse(x.responseText); }catch(e){} if(d && d.ok) ok(d); else no(new Error((d && d.reason) || "영상을 올리지 못했어요")); };
+        x.onerror = () => no(new Error("영상을 올리지 못했어요. 인터넷 연결을 확인해 주세요"));
+        x.send(file);
+      });
+    }
+    async function addVideo(file){
+      if(!file) return;
+      if(!/^video\/(mp4|webm|quicktime)$/.test(file.type)) return toast("mp4, webm, mov 영상만 올릴 수 있어요");
+      if(file.size > VID_SIZE) return toast("영상은 50MB까지 올릴 수 있어요 (지금 " + Math.ceil(file.size / 1048576) + "MB)");
+      if(ed.querySelectorAll(".ed-img.vid").length >= MAX_VID) return toast("영상은 한 글에 " + MAX_VID + "개까지 넣을 수 있어요");
+      const token = await B.token().catch(() => null);
+      if(!token) return toast(location.protocol.startsWith("http") ? "로그인한 뒤 영상을 올릴 수 있어요" : "체험 모드에서는 영상을 올릴 수 없어요");
+      const ph = placeholder(); ph.classList.add("vid"); ph.querySelector("span").textContent = "영상 올리는 중… 0%"; placeNode(ph);
+      $("submitBtn").disabled = true;
+      try{
+        const d = await uploadVideo(file, token, p => { ph.querySelector("span").textContent = "영상 올리는 중… " + p + "%"; });
+        const f = document.createElement("figure");
+        f.className = "ed-img vid"; f.contentEditable = "false"; f.dataset.video = d.src;
+        f.innerHTML = '<video src="' + esc(d.src) + '" controls preload="metadata" playsinline></video><button type="button" class="ed-x" aria-label="영상 빼기">×</button>';
+        ph.replaceWith(f);
+      }catch(err){ ph.remove(); toast(err.message); }
+      $("submitBtn").disabled = false; emptyCheck();
+    }
+    $("vidBtn").addEventListener("click", () => { keepRange(); $("vidInput").click(); });
+    $("vidInput").addEventListener("change", e => { addVideo(e.target.files[0]); e.target.value = ""; });
     $("imgBtn").addEventListener("click", () => { keepRange(); $("imgInput").click(); });
     $("imgInput").addEventListener("change", e => { addImages(e.target.files); e.target.value = ""; });
 
@@ -412,6 +447,7 @@
       const cd = e.clipboardData; if(!cd) return;
       const files = Array.from(cd.files || []), html = cd.getData("text/html"), text = cd.getData("text/plain");
       e.preventDefault();
+      if(files.some(f => /^video\//.test(f.type)) && !html) return addVideo(files.find(f => /^video\//.test(f.type)));
       if(files.some(f => /^image\//.test(f.type)) && !html) return addImages(files);
       if(html){
         try{
@@ -424,14 +460,20 @@
       keepRange(); emptyCheck();
     });
     ed.addEventListener("dragover", e => { if(e.dataTransfer && Array.from(e.dataTransfer.types).includes("Files")) e.preventDefault(); });
-    ed.addEventListener("drop", e => { if(e.dataTransfer && e.dataTransfer.files.length){ e.preventDefault(); addImages(e.dataTransfer.files); } });
+    ed.addEventListener("drop", e => {
+      if(!(e.dataTransfer && e.dataTransfer.files.length)) return;
+      e.preventDefault();
+      const fs = Array.from(e.dataTransfer.files), v = fs.find(f => /^video\//.test(f.type));
+      if(v) addVideo(v); else addImages(fs);
+    });
 
     /* ── 저장 형식 ── */
     toBody = () => {
       const c = ed.cloneNode(true);
       c.querySelectorAll(".ed-img.loading").forEach(x => x.remove());
+      c.querySelectorAll(".ed-img.vid").forEach(f => { if(!f.dataset.video) return f.remove(); const v = document.createElement("video"); v.setAttribute("src", f.dataset.video); const d = document.createElement("div"); d.appendChild(v); f.replaceWith(d); });
       c.querySelectorAll(".ed-img").forEach(f => { const img = document.createElement("img"); img.src = f.dataset.src; img.alt = "사진"; const d = document.createElement("div"); d.appendChild(img); f.replaceWith(d); });
-      if(!c.textContent.trim() && !c.querySelector("img")) return "";
+      if(!c.textContent.trim() && !c.querySelector("img, video")) return "";
       const html = RichText.sanitize(c.innerHTML).replace(/(<div><br><\/div>\s*){3,}/g, "<div><br></div><div><br></div>");
       const out = RichText.MARK + html;
       if(out.length > MAX_LEN){ toast("글이 너무 길어요. 서식이 많은 글은 조금 나눠서 올려 주세요"); return null; }

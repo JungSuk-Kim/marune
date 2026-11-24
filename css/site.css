@@ -766,3 +766,9 @@ a.post-row.soop-row:hover{background:#eaf7ef}
 .lp-video.tall{max-width:360px}
 .lp-video.tall iframe{aspect-ratio:9/16}
 .lp-src{display:inline-block;margin-top:6px;font-size:12px;color:var(--ink-3)!important;text-decoration:none!important}
+
+/* 글 속 영상 */
+.ed-img.vid video,.post-body video{display:block;width:100%;max-width:640px;max-height:520px;border-radius:12px;background:#111}
+.ed-img.vid{width:100%;max-width:640px}
+.ed-img.loading.vid{width:260px}
+.post-body video{margin:10px 0;box-shadow:0 6px 18px rgba(42,35,64,.14)}
