@@ -88,3 +88,17 @@ export async function onRequestDelete({ request, env }){
   await B.delete(key);
   return json({ ok: true });
 }
+
+/* 운영자용 사용량: GET /api/video?usage=1 */
+export async function onRequestGet({ request, env }){
+  const B = env.VIDEOS; if(!B) return fail("영상 저장소가 연결되지 않았어요", 503);
+  const me = await whoami(request, env); if(!me || me.role !== "admin") return fail("운영자만 볼 수 있어요", 403);
+  const month = new Date().toISOString().slice(0, 7).replace("-", "");
+  const metaObj = await B.get("_meta/" + month + ".json");
+  const meta = metaObj ? await metaObj.json() : { uploads: 0 };
+  const all = (await listAll(B, "")).filter(o => !o.key.startsWith("_meta/"));
+  const used = all.reduce((a, o) => a + o.size, 0);
+  const files = all.sort((a, b) => b.uploaded - a.uploaded).slice(0, 100)
+    .map(o => ({ key: o.key, size: o.size, uploaded: o.uploaded }));
+  return json({ ok: true, used, count: all.length, maxTotal: MAX_TOTAL, monthUploads: meta.uploads, perMonth: PER_MONTH, perUserDay: PER_USER_DAY, maxSize: MAX_SIZE, files });
+}

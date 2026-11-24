@@ -19,7 +19,7 @@
   /* ── 시그 ── */
   if(page === "sig"){
     const D = window.SIGS || { items: [], categories: [] };
-    $("sampleChip").innerHTML = sampleChip(D.sample);
+    $("sampleChip").innerHTML = sampleChip(D.sample) + (D.note ? '<span class="sec-sub">' + esc(D.note) + '</span>' : "");
     const items = D.items.slice().sort((a, b) => a.count - b.count);
     tabs($("tabs"), D.categories || [], cat => {
       const list = items.filter(x => !cat || x.category === cat);
@@ -121,6 +121,7 @@
 
   /* ── 공약현황 ── */
   if(page === "promise"){
+   const draw = () => {
     const D = window.PROMISES || { items: [] };
     $("sampleChip").innerHTML = sampleChip(D.sample);
     const row = p => {
@@ -152,8 +153,20 @@
     const mt = $("missionTabs");
     mt.innerHTML = ["전체", "진행중", "성공", "실패"].map((t, i) => '<button type="button" data-f="' + (i ? t : "") + '" aria-pressed="' + (i ? "false" : "true") + '">' + (t === "진행중" ? "진행 중" : t)
       + (i ? ' <span class="num">' + M.items.filter(m => m.status === t).length + '</span>' : "") + '</button>').join("");
-    mt.addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; mt.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); showM(b.dataset.f); });
+    mt.onclick = e => { const b = e.target.closest("button"); if(!b) return; mt.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); showM(b.dataset.f); };
     showM("");
+   };
+    draw();
+    /* 운영자 화면에서 적은 공약·도전미션이 있으면 그것을 보여줌 (없으면 data/content.js 내용) */
+    if(S.supabaseUrl && S.supabaseAnonKey){
+      const get = t => fetch(S.supabaseUrl.replace(/\/$/, "") + "/rest/v1/" + t, { headers: { apikey: S.supabaseAnonKey } }).then(r => r.ok ? r.json() : null).catch(() => null);
+      Promise.all([get("promises?select=*&order=sort.asc,id.asc"), get("missions?select=*&order=day.desc,id.desc&limit=200")]).then(([ps, ms]) => {
+        let changed = false;
+        if(ps && ps.length){ window.PROMISES = { sample: false, items: ps.map(p => ({ title: p.title, now: p.now_value, goal: p.goal, unit: p.unit, note: p.note, done: p.done })) }; changed = true; }
+        if(ms && ms.length){ window.MISSIONS = { sample: false, items: ms.map(m => ({ title: m.title, balloons: m.balloons, by: m.requester, status: m.status, date: m.day })) }; changed = true; }
+        if(changed) draw();
+      });
+    }
   }
 
   /* ── 놀이터 목록 ── */

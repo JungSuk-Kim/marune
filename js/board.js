@@ -69,7 +69,7 @@
     const slot = $("authSlot"); if(!slot) return;
     const u = B.user();
     slot.innerHTML = u
-      ? '<span><b>' + esc(u.nickname) + '</b>' + badge(u.role) + ' 님</span><button type="button" class="text-btn" id="nickBtn">닉네임 변경</button><button type="button" class="text-btn" id="outBtn">로그아웃</button>'
+      ? '<span><b>' + esc(u.nickname) + '</b>' + badge(u.role) + ' 님</span>' + (u.role === "admin" && page !== "admin" ? '<a class="text-btn" href="' + url("admin.html") + '">운영자 화면</a>' : "") + '<button type="button" class="text-btn" id="nickBtn">닉네임 변경</button><button type="button" class="text-btn" id="outBtn">로그아웃</button>'
       : '<button type="button" class="btn light" id="inBtn">로그인</button>';
     if(u){ $("nickBtn").addEventListener("click", nickModal); $("outBtn").addEventListener("click", () => B.signOut()); }
     else $("inBtn").addEventListener("click", loginModal);
@@ -235,6 +235,20 @@
     });
   }
 
+  /* ── 신고 ── */
+  const REASONS = ["욕설·비하", "광고·도배", "개인정보 노출", "음란·불쾌한 내용", "기타"];
+  function reportModal(type, targetId, postId){
+    if(!B.user()) return loginModal();
+    modal('<h3>' + (type === "post" ? "글" : "댓글") + ' 신고</h3><p>운영자에게만 보여요. 신고한 사람은 공개되지 않아요.</p>'
+      + '<div class="report-reasons">' + REASONS.map((r, i) => '<label><input type="radio" name="rr" value="' + esc(r) + '"' + (i ? "" : " checked") + '> ' + esc(r) + '</label>').join("") + '</div>'
+      + '<input class="field" id="rrMore" maxlength="200" placeholder="자세한 내용 (안 써도 돼요)" style="margin:8px 0 12px">'
+      + '<button type="button" class="btn cherry" id="yes">신고하기</button><button type="button" class="btn light" data-close>취소</button>',
+      (el, close) => el.querySelector("#yes").addEventListener("click", () => {
+        const r = el.querySelector('input[name="rr"]:checked').value, more = el.querySelector("#rrMore").value.trim();
+        B.report({ type, targetId, postId, reason: r + (more ? " · " + more : "") }).then(() => { close(); toast("신고했어요. 운영자가 확인할게요"); }).catch(e => toast(e.message));
+      }));
+  }
+
   /* ───────── 글 보기 ───────── */
   function initPost(){
     const id = Number(params.get("id"));
@@ -245,16 +259,19 @@
       if(!p){ $("post").innerHTML = '<p class="empty">없는 글이거나 삭제된 글이에요.</p><p style="text-align:center"><a class="btn light" href="' + url("board.html") + '">목록으로</a></p>'; $("commentBox").hidden = true; return; }
       document.title = p.title + " | " + S.siteName;
       $("post").innerHTML = '<div class="post-head">' + catChip(p.category) + '<h1>' + esc(p.title) + '</h1>'
-        + '<div class="post-meta"><span>' + esc(p.author) + badge(p.authorRole) + '</span><span class="num">' + when(p.createdAt) + '</span><span class="num">조회 ' + p.views + '</span></div></div>'
+        + '<div class="post-meta"><span>' + esc(p.author) + badge(p.authorRole) + '</span><span class="num">' + when(p.createdAt) + (p.editedAt ? ' <small>(수정됨)</small>' : "") + '</span><span class="num">조회 ' + p.views + '</span></div></div>'
         + '<div class="post-body' + (RichText.isRich(p.body) ? " rich" : "") + '">' + renderBody(p.body, true) + '</div>'
         + '<div class="post-actions"><button type="button" class="btn light like-btn" id="likeBtn" aria-pressed="' + p.liked + '">추천 <b class="num" id="likeN">' + p.likes + '</b></button>'
         + '<a class="btn light" href="' + url("board.html") + '">목록</a>'
-        + (B.canDelete(p) ? '<button type="button" class="btn light" id="delBtn">삭제</button>' : "") + '</div>';
+        + (B.canEdit(p) ? '<a class="btn light" href="' + url("write.html?edit=" + p.id) + '">수정</a>' : "")
+        + (B.canDelete(p) ? '<button type="button" class="btn light" id="delBtn">삭제</button>' : "")
+        + (!p.mine ? '<button type="button" class="text-btn report-btn" id="repBtn">신고</button>' : "") + '</div>';
       $("likeBtn").addEventListener("click", () => {
         if(!B.user()) return loginModal();
         B.toggleLike(id).then(r => { $("likeBtn").setAttribute("aria-pressed", r.liked); $("likeN").textContent = r.likes; }).catch(e => toast(e.message));
       });
       fillPreviews($("post"));
+      if($("repBtn")) $("repBtn").addEventListener("click", () => reportModal("post", id, id));
       const del = $("delBtn");
       if(del) del.addEventListener("click", () => modal('<h3>글을 삭제할까요?</h3><p>삭제하면 되돌릴 수 없어요.</p><button type="button" class="btn cherry" id="yes">삭제</button><button type="button" class="btn light" data-close>취소</button>',
         el => el.querySelector("#yes").addEventListener("click", () => B.remove(id).then(() => B.removeMedia(p.body)).then(() => { location.href = url("board.html"); }).catch(e => toast(e.message)))));
@@ -265,13 +282,17 @@
         const list = await B.comments(id);
         $("commentCount").textContent = list.length;
         $("comments").innerHTML = list.length ? list.map(c => '<div class="comment"><div class="c-top"><b>' + esc(c.author) + '</b>' + badge(c.authorRole) + '<span class="num">' + when(c.createdAt) + '</span>'
-          + (B.canDelete(c) ? '<button type="button" class="text-btn" data-del="' + c.id + '">삭제</button>' : "") + '</div><p>' + renderBody(c.body, false) + '</p></div>').join("")
+          + (B.canDelete(c) ? '<button type="button" class="text-btn" data-del="' + c.id + '">삭제</button>' : "")
+          + (!c.mine ? '<button type="button" class="text-btn report-btn" data-rep="' + c.id + '">신고</button>' : "") + '</div><p>' + renderBody(c.body, false) + '</p></div>').join("")
           : '<p class="empty">첫 댓글을 남겨 보세요</p>';
       }catch(e){ $("comments").innerHTML = '<p class="empty">댓글을 불러오지 못했어요</p>'; }
       const u = B.user();
       $("commentInput").placeholder = u ? "댓글을 써 주세요" : "로그인한 뒤 댓글을 쓸 수 있어요";
     }
-    $("comments").addEventListener("click", e => { const b = e.target.closest("[data-del]"); if(b) B.removeComment(b.dataset.del).then(loadComments).catch(err => toast(err.message)); });
+    $("comments").addEventListener("click", e => {
+      const b = e.target.closest("[data-del]"); if(b) B.removeComment(b.dataset.del).then(loadComments).catch(err => toast(err.message));
+      const r = e.target.closest("[data-rep]"); if(r) reportModal("comment", r.dataset.rep, id);
+    });
     $("commentForm").addEventListener("submit", e => {
       e.preventDefault();
       if(!B.user()) return loginModal();
@@ -284,8 +305,15 @@
   /* ───────── 글쓰기 ───────── */
   function initWrite(){
     let toBody = () => $("body").value;
+    const editId = Number(params.get("edit")) || 0;
+    let editing = null, loadedEdit = false;
     function render(){
       const u = B.user();
+      if(editId){
+        $("needLogin").hidden = !!u; $("writeForm").hidden = !u;
+        if(u && !loadedEdit){ loadedEdit = true; loadEdit(); }
+        return;
+      }
       const allowed = B.boards.filter(b => B.canWrite(b.id));
       $("needLogin").hidden = !!u;
       $("writeForm").hidden = !u;
@@ -480,11 +508,48 @@
       return out;
     };
     ed.addEventListener("input", emptyCheck);
+    /* ── 글 고치기: 저장된 본문을 편집기로 다시 불러옴 ── */
+    const mediaOf = body => {
+      body = String(body || "");
+      return new Set([...(body.match(/https:\/\/[^\s"'<>)]+/g) || []), ...(body.match(/\/v\/[0-9a-f-]{36}\/\d{8}-[0-9a-f]{8}\.(?:mp4|webm|mov)/g) || [])]);
+    };
+    async function loadEdit(){
+      const p = await B.get(editId, { raw: true }).catch(() => null);
+      if(!p || !B.canEdit(p)){ $("writeForm").innerHTML = '<p class="empty">고칠 수 없는 글이에요.</p>'; return; }
+      editing = p;
+      document.title = "글 수정 | " + S.siteName;
+      $("cat").innerHTML = '<option value="' + esc(p.category) + '">' + esc(B.label(p.category)) + '</option>'; $("cat").disabled = true;
+      $("title").value = p.title;
+      $("submitBtn").textContent = "수정 완료";
+      let html;
+      if(RichText.isRich(p.body)){ await RichText.ready().catch(() => {}); html = RichText.sanitize(p.body.slice(RichText.MARK.length)); }
+      else html = String(p.body).split("\n").map(line => {
+        const m = line.match(/^!\[[^\]]*\]\((https?:[^)\s]+|data:image\/[^)\s]+)\)$/);
+        return "<div>" + (m ? '<img src="' + esc(m[1]) + '" alt="사진">' : (esc(line) || "<br>")) + "</div>";
+      }).join("");
+      ed.innerHTML = html;
+      ed.querySelectorAll("img").forEach(img => { const src = img.getAttribute("src"); (img.closest("div") && img.closest("div").parentNode === ed && img.parentNode.childNodes.length === 1 ? img.parentNode : img).replaceWith(makeFigure(src)); });
+      ed.querySelectorAll("video").forEach(v => {
+        const src = v.getAttribute("src"), f = document.createElement("figure");
+        f.className = "ed-img vid"; f.contentEditable = "false"; f.dataset.video = src;
+        f.innerHTML = '<video src="' + esc(src) + '" controls preload="metadata" playsinline></video><button type="button" class="ed-x" aria-label="영상 빼기">×</button>';
+        (v.parentNode !== ed && v.parentNode.childNodes.length === 1 ? v.parentNode : v).replaceWith(f);
+      });
+      emptyCheck();
+    }
     $("writeForm").addEventListener("submit", e => {
       e.preventDefault();
       const btn = $("submitBtn"); btn.disabled = true;
       const body = toBody();
       if(body === null){ btn.disabled = false; return; }
+      if(editing){
+        const before = mediaOf(editing.body), after = mediaOf(body);
+        const gone = [...before].filter(u => !after.has(u));
+        return B.update({ id: editing.id, title: $("title").value, body })
+          .then(() => gone.length ? B.removeMedia(gone.join("\n")) : null)
+          .then(() => { location.href = url("post.html?id=" + editing.id); })
+          .catch(err => { toast(err.message); btn.disabled = false; });
+      }
       B.create({ category: $("cat").value, title: $("title").value, body })
         .then(id => { location.href = url("post.html?id=" + id); })
         .catch(err => { toast(err.message); btn.disabled = false; });

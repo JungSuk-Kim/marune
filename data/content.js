@@ -45,16 +45,44 @@ window.MISSIONS = {
 /* 시그: category 는 "갠방" 또는 "엑셀". image 에 그림 경로를 넣으면 그 그림이,
    비워 두면 icon 번호의 퍼스나콘이 나옵니다 */
 window.SIGS = {
-  sample: true,
-  categories: ["갠방", "엑셀"],
+  sample: false,
+  /* 마루º SOOP 방송국 '알려드립니다' 공지에서 모은 목록 (2026-06-06 「채플단 공약 & 자신 있는 시그」, 2026-08-17·08-25 「하고싶은 시그!」).
+     개수가 바뀐 시그가 있어요(예: 1010 Wait → 푸른산호초). 최신 목록이 나오면 '최근' 묶음을 바꿔 주세요. */
+  note: "SOOP 방송국 공지 기준이에요. 시그 개수는 방송에서 바뀔 수 있어요.",
+  categories: ["최근 (8월)", "이전 (6월)"],
   items: [
-    { count: 100,  name: "체리 인사",   desc: "손 흔들며 인사",        category: "갠방", icon: 6,  image: "" },
-    { count: 300,  name: "새싹 댄스",   desc: "짧은 춤 리액션",        category: "갠방", icon: 2,  image: "" },
-    { count: 500,  name: "꽃받침",      desc: "꽃받침 애교",           category: "갠방", icon: 3,  image: "" },
-    { count: 1000, name: "쌍둥이 체리", desc: "노래 한 소절",          category: "갠방", icon: 7,  image: "" },
-    { count: 2000, name: "케이크 타임", desc: "풀버전 리액션",         category: "엑셀", icon: 10, image: "" },
-    { count: 3000, name: "파르페",      desc: "댄스 풀버전",           category: "엑셀", icon: 11, image: "" },
-    { count: 5000, name: "체리 선데",   desc: "스페셜 리액션",         category: "엑셀", icon: 12, image: "" }
+    { count: 1010, name: "푸른산호초", desc: "8월 공지 · 자신있는 시그", category: "최근 (8월)", icon: 1, image: "" },
+    { count: 1070, name: "스트로베리", desc: "8월 공지 · 자신있는 시그", category: "최근 (8월)", icon: 2, image: "" },
+    { count: 1154, name: "나루토", desc: "8월 공지 · 자신있는 시그", category: "최근 (8월)", icon: 3, image: "" },
+    { count: 1178, name: "체온", desc: "8월 공지 · 자신있는 시그", category: "최근 (8월)", icon: 4, image: "" },
+    { count: 1222, name: "TT", desc: "8월 공지 · 자신있는 시그", category: "최근 (8월)", icon: 5, image: "" },
+    { count: 1313, name: "웨이백홈", desc: "8월 공지 · 자신있는 시그", category: "최근 (8월)", icon: 6, image: "" },
+    { count: 1555, name: "BAD", desc: "8월 공지 · 자신있는 시그", category: "최근 (8월)", icon: 7, image: "" },
+    { count: 1617, name: "위플래쉬", desc: "8월 공지 · 자신있는 시그", category: "최근 (8월)", icon: 8, image: "" },
+    { count: 3000, name: "MVP", desc: "8월 공지 · 자신있는 시그", category: "최근 (8월)", icon: 9, image: "" },
+    { count: 3388, name: "하이스트 (전반전)", desc: "8월 공지 · 자신있는 시그", category: "최근 (8월)", icon: 10, image: "" },
+    { count: 1010, name: "Wait", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 5, image: "" },
+    { count: 1020, name: "Holy Moly", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 6, image: "" },
+    { count: 1030, name: "EDM", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 7, image: "" },
+    { count: 1050, name: "POSE!", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 8, image: "" },
+    { count: 1060, name: "Tap and Bye", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 9, image: "" },
+    { count: 1240, name: "캐치캐치", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 10, image: "" },
+    { count: 1470, name: "체온", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 11, image: "" },
+    { count: 1777, name: "나루토", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 12, image: "" },
+    { count: 1950, name: "overdrive", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 1, image: "" },
+    { count: 1999, name: "외모췤", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 2, image: "" },
+    { count: 2000, name: "자기야 화풀어", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 3, image: "" },
+    { count: 2050, name: "핑크레이디", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 4, image: "" },
+    { count: 2100, name: "개구리", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 5, image: "" },
+    { count: 3000, name: "sax", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 6, image: "" },
+    { count: 3400, name: "개포동의 눈물", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 7, image: "" },
+    { count: 4800, name: "루니솔라", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 8, image: "" },
+    { count: 5000, name: "호텔파티", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 9, image: "" },
+    { count: 8000, name: "계엄령", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 10, image: "" },
+    { count: 10000, name: "gravity", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 11, image: "" },
+    { count: 10004, name: "뷰티풀", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 12, image: "" },
+    { count: 25000, name: "런 투 더 스카이", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 1, image: "" },
+    { count: 30000, name: "오케스트라", desc: "6월 공지 · 자신 있는 시그", category: "이전 (6월)", icon: 2, image: "" }
   ]
 };
 

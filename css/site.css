@@ -772,3 +772,41 @@ a.post-row.soop-row:hover{background:#eaf7ef}
 .ed-img.vid{width:100%;max-width:640px}
 .ed-img.loading.vid{width:260px}
 .post-body video{margin:10px 0;box-shadow:0 6px 18px rgba(42,35,64,.14)}
+
+/* ── 신고 ── */
+.report-btn{color:var(--ink-3);margin-left:auto}
+.post-actions .report-btn{margin-left:auto}
+.report-reasons{display:grid;gap:6px;margin:10px 0 0;text-align:left}
+.report-reasons label{display:flex;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;cursor:pointer;font-size:14px}
+.report-reasons label:has(input:checked){border-color:var(--cherry);background:#fff3f7}
+.post-meta small{color:var(--ink-3);font-size:11px}
+
+/* ── 운영자 화면 ── */
+.admin-tabs{grid-template-columns:repeat(6,1fr);max-width:920px}
+.admin-tabs .tab-n{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--cherry);color:#fff;font-size:11px;line-height:18px}
+.admin-tabs .tab-n:empty{display:none}
+.admin-panel{margin-top:18px}
+.adm-row{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:8px}
+.adm-main{min-width:0;flex:1}
+.adm-main p{margin:4px 0 0;word-break:break-all}
+.adm-top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.adm-quote{padding:8px 10px;background:var(--tint);border-radius:8px}
+.adm-acts{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.adm-acts .btn,.adm-table .btn{padding:6px 12px;font-size:13px}
+.adm-acts select.field,.adm-table select.field{width:auto;padding:6px 8px;font-size:13px}
+.adm-form{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr auto;gap:8px;margin:10px 0 16px}
+.adm-form .field{min-width:0}
+.adm-table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.adm-table{width:100%;border-collapse:collapse;font-size:13px}
+.adm-table th,.adm-table td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+.adm-table th{background:var(--tint);color:var(--ink-2);font-weight:500}
+.adm-table tr.banned td{background:#fff3f3;color:var(--ink-3)}
+.adm-usage{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+@media (max-width:760px){
+  .admin-tabs{grid-template-columns:repeat(3,1fr)}
+  .adm-form{grid-template-columns:1fr 1fr}
+  .adm-form .field:first-child{grid-column:1/-1}
+  .adm-row{flex-direction:column;align-items:stretch}
+  .adm-acts{justify-content:flex-start}
+  .adm-usage{grid-template-columns:1fr}
+}

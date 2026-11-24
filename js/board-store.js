@@ -2,7 +2,7 @@
    data/site.js 에 supabaseUrl 과 supabaseAnonKey 가 있으면 실제 데이터베이스(Supabase)를 쓰고,
    비어 있으면 "체험 모드"로 이 브라우저 안에만 저장합니다. 화면 코드는 두 경우를 구분하지 않습니다. */
 (function(){
-  const { S, store } = window.CM;
+  const { S, store, url } = window.CM;
   const listeners = [];
   const emit = () => listeners.forEach(fn => { try{ fn(api.user()); }catch(e){} });
   const SIZE = 15;
@@ -55,11 +55,14 @@
         const n = size || SIZE, start = ((page || 1) - 1) * n;
         return { items: a.slice(start, start + n).map(view), total: a.length };
       },
-      get: async id => {
+      get: async (id, opt) => {
         const p = db.posts.find(x => x.id === id); if(!p) return null;
-        p.views++; save();
-        return Object.assign(view(p), { body: p.body, liked: !!me && db.likes.some(l => l.postId === id && l.uid === me.id) });
+        if(!(opt && opt.raw)){ p.views++; save(); }
+        return Object.assign(view(p), { body: p.body, editedAt: p.editedAt || null, liked: !!me && db.likes.some(l => l.postId === id && l.uid === me.id) });
       },
+      update: async ({ id, title, body }) => { const p = db.posts.find(x => x.id === id); if(!p) throw new Error("없는 글이에요"); p.title = title; p.body = body; p.editedAt = Date.now(); save(); },
+      report: async () => {},
+      client: () => null,
       /* 체험 모드: 사진을 이 기기 안에만 담아 둠 */
       token: async () => null,
       removeImages: async () => {},
@@ -92,7 +95,7 @@
       const { data } = await sb.auth.getSession();
       const session = data && data.session;
       if(!session){ me = null; return; }
-      const r = await sb.from("profiles").select("id,nickname,role").eq("id", session.user.id).maybeSingle();
+      const r = await sb.from("profiles").select("id,nickname,role,banned").eq("id", session.user.id).maybeSingle();
       me = r.data || { id: session.user.id, nickname: "새 체리", role: "member" };
     }
     return {
@@ -127,13 +130,13 @@
         const r = check(await query.range(start, start + n - 1));
         return { items: (r.data || []).map(row), total: r.count || 0 };
       },
-      get: async id => {
-        const r = await sb.from("posts").select("id,category,title,body,author_id,created_at,views,like_count,comment_count," + AUTHOR).eq("id", id).maybeSingle();
+      get: async (id, opt) => {
+        const r = await sb.from("posts").select("id,category,title,body,author_id,created_at,updated_at,views,like_count,comment_count," + AUTHOR).eq("id", id).maybeSingle();
         if(r.error || !r.data) return null;
-        sb.rpc("increment_view", { pid: id }).then(() => {}, () => {});
+        if(!(opt && opt.raw)) sb.rpc("increment_view", { pid: id }).then(() => {}, () => {});
         let liked = false;
         if(me){ const l = await sb.from("post_likes").select("post_id").eq("post_id", id).eq("user_id", me.id).maybeSingle(); liked = !!l.data; }
-        return Object.assign(row(r.data), { body: r.data.body, liked });
+        return Object.assign(row(r.data), { body: r.data.body, editedAt: r.data.updated_at ? Date.parse(r.data.updated_at) : null, liked });
       },
       token: async () => { const s = await sb.auth.getSession(); return s && s.data && s.data.session ? s.data.session.access_token : null; },
       removeImages: async paths => { if(paths.length) await sb.storage.from("post-images").remove(paths); },
@@ -148,6 +151,15 @@
         return r.data.id;
       },
       remove: async id => { check(await sb.from("posts").delete().eq("id", id)); },
+      update: async ({ id, title, body }) => {
+        const r = check(await sb.from("posts").update({ title, body }).eq("id", id).select("id"));
+        if(!r.data || !r.data.length) throw new Error("이 글을 고칠 수 없어요");
+      },
+      report: async o => {
+        const r = await sb.from("reports").insert({ target_type: o.type, target_id: o.targetId, post_id: o.postId, reason: o.reason });
+        if(r.error){ if(r.error.code === "23505") throw new Error("이미 신고한 글이에요"); throw new Error(r.error.message); }
+      },
+      client: () => sb,
       comments: async id => {
         const r = check(await sb.from("comments").select("id,body,created_at,author_id,author:profiles!comments_author_id_fkey(nickname,role)").eq("post_id", id).order("created_at", { ascending: true }));
         return (r.data || []).map(c => ({ id: c.id, body: c.body, author: (c.author && c.author.nickname) || "알 수 없음", authorRole: (c.author && c.author.role) || "member",
@@ -184,6 +196,10 @@
       return b.write === "streamer" && u.role === "streamer";
     },
     canDelete: item => { const u = be.user(); return !!u && (item.mine || u.role === "admin"); },
+    canEdit: item => { const u = be.user(); return !!u && !u.banned && (item.mine || u.role === "admin"); },
+    isAdmin: () => { const u = be.user(); return !!u && u.role === "admin"; },
+    /* 운영자 화면에서 쓰는 Supabase 연결 (체험 모드면 null) */
+    client: () => be.client(),
     signIn: p => be.signIn(p),
     signOut: () => be.signOut(),
     setNickname: n => {
@@ -192,12 +208,25 @@
       return be.setNickname(n);
     },
     list: o => be.list(o || {}),
-    get: id => be.get(Number(id)),
+    get: (id, opt) => be.get(Number(id), opt),
+    update: o => {
+      const title = clean(o.title, 100), body = clean(o.body, 30000);
+      if(!title) return Promise.reject(new Error("제목을 써 주세요"));
+      if(!body) return Promise.reject(new Error("내용을 써 주세요"));
+      return be.update({ id: Number(o.id), title, body });
+    },
+    report: o => {
+      if(!be.user()) return Promise.reject(new Error("로그인한 뒤 신고할 수 있어요"));
+      const reason = clean(o.reason, 300);
+      if(!reason) return Promise.reject(new Error("신고 이유를 골라 주세요"));
+      return be.report({ type: o.type, targetId: Number(o.targetId), postId: Number(o.postId), reason });
+    },
     create: o => {
       const title = clean(o.title, 100), body = clean(o.body, 30000);
       if(!title) return Promise.reject(new Error("제목을 써 주세요"));
       if(!body) return Promise.reject(new Error("내용을 써 주세요"));
       if(!api.canWrite(o.category)) return Promise.reject(new Error("이 게시판에는 글을 쓸 수 없어요"));
+      if(be.user().banned) return Promise.reject(new Error("활동이 정지된 계정이에요"));
       return be.create({ category: o.category, title, body });
     },
     uploadImage: blob => be.user() ? be.uploadImage(blob) : Promise.reject(new Error("로그인한 뒤 사진을 올릴 수 있어요")),

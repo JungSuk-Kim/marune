@@ -64,8 +64,7 @@
       : '<a class="card" href="' + url("archive.html") + '">' + inner + '</a>';
   }
   /* 영상 칸: 유튜브 · 캐치 · 클립 탭. 배포 전(파일로 열 때)에는 칸을 숨김 */
-  const V = { yt: null, catch: null, clip: null };
-  const more = { yt: S.youtubeUrl, catch: url("archive.html"), clip: url("archive.html") };
+  const V = { yt: null, hot: null, catch: null, clip: null };
   async function showVideos(kind){
     $("videoTabs").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === kind));
     $("videos").classList.toggle("catch-grid", kind === "catch");
@@ -74,6 +73,11 @@
       if(kind === "yt"){
         const d = await getJSON("api/youtube");
         V.yt = d && d.ok ? d.items.slice(0, 4).map(x => videoCard({ title: x.title, youtube: x.id, date: ago(x.published) }, 0)) : [];
+      } else if(kind === "hot"){
+        /* 인기: 캐치·클립을 조회수순으로 모아 많이 본 4개 (캐치도 가로 칸에 맞춰 보여줌) */
+        const [c, l] = await Promise.all([fetchVods("catch", 1, 8, "views"), fetchVods("clip", 1, 8, "views")]);
+        const all = [].concat(c ? c.items : [], l ? l.items : []).sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 4);
+        V.hot = all.map(v => vodCard(v).replace('class="card vod catch"', 'class="card vod"'));
       } else {
         const d = await fetchVods(kind, 1, kind === "catch" ? 6 : 4);
         V[kind] = d ? d.items.map(vodCard) : [];
