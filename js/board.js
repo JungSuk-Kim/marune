@@ -142,6 +142,56 @@
     markTabs(); load();
   }
 
+  /* ───────── 본문 꾸미기: 사진 · 링크 · 링크 미리보기 ───────── */
+  const IMG_LINE = /^!\[[^\]]*\]\(([^)\s]+)\)$/;
+  const URL_RE = /https?:\/\/[^\s<>"']+[^\s<>"'.,!?)\]}]/g;
+  const linkify = s => {
+    let out = "", last = 0;
+    s.replace(URL_RE, (m, i) => { out += esc(s.slice(last, i)) + '<a href="' + esc(m) + '" target="_blank" rel="noopener nofollow ugc">' + esc(m) + '</a>'; last = i + m.length; return m; });
+    return out + esc(s.slice(last));
+  };
+  function renderBody(text, withMedia){
+    const lines = String(text || "").split("\n"), html = [];
+    let previews = 0;
+    lines.forEach((raw, i) => {
+      const t = raw.trim(), im = withMedia && t.match(IMG_LINE);
+      if(im && B.isOwnImage(im[1])){
+        html.push('<a class="pb-img" href="' + esc(im[1]) + '" target="_blank" rel="noopener"><img src="' + esc(im[1]) + '" alt="첨부 사진" loading="lazy"></a>');
+        return;
+      }
+      if(withMedia && previews < 5 && /^https?:\/\/\S+$/.test(t)){
+        previews++;
+        html.push('<div class="lp" data-url="' + esc(t) + '"><a href="' + esc(t) + '" target="_blank" rel="noopener nofollow ugc">' + esc(t) + '</a></div>');
+        return;
+      }
+      html.push(linkify(raw) + (i < lines.length - 1 ? "<br>" : ""));
+    });
+    return html.join("");
+  }
+  const ogCache = {};
+  function fetchOg(u){
+    if(ogCache[u]) return ogCache[u];
+    let saved = null; try{ saved = JSON.parse(sessionStorage.getItem("og:" + u)); }catch(e){}
+    if(saved) return (ogCache[u] = Promise.resolve(saved));
+    if(!location.protocol.startsWith("http")) return Promise.resolve(null);
+    return (ogCache[u] = fetch(url("api/og?url=" + encodeURIComponent(u))).then(r => r.ok ? r.json() : null).then(d => {
+      if(d && d.ok){ try{ sessionStorage.setItem("og:" + u, JSON.stringify(d)); }catch(e){} return d; }
+      return null;
+    }).catch(() => null));
+  }
+  function fillPreviews(root){
+    root.querySelectorAll(".lp[data-url]").forEach(el => {
+      const u = el.dataset.url;
+      fetchOg(u).then(d => {
+        if(!d || !(d.title || d.image)) return;
+        el.innerHTML = '<a class="lp-card' + (d.image ? "" : " no-img") + '" href="' + esc(u) + '" target="_blank" rel="noopener nofollow ugc">'
+          + (d.image ? '<span class="lp-img"><img src="' + esc(d.image) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></span>' : "")
+          + '<span class="lp-text"><b>' + esc(d.title || u) + '</b>' + (d.description ? '<small>' + esc(d.description) + '</small>' : "")
+          + '<em>' + esc(d.site || new URL(u).hostname) + '</em></span></a>';
+      });
+    });
+  }
+
   /* ───────── 글 보기 ───────── */
   function initPost(){
     const id = Number(params.get("id"));
@@ -152,7 +202,7 @@
       document.title = p.title + " | " + S.siteName;
       $("post").innerHTML = '<div class="post-head">' + catChip(p.category) + '<h1>' + esc(p.title) + '</h1>'
         + '<div class="post-meta"><span>' + esc(p.author) + badge(p.authorRole) + '</span><span class="num">' + when(p.createdAt) + '</span><span class="num">조회 ' + p.views + '</span></div></div>'
-        + '<div class="post-body">' + esc(p.body) + '</div>'
+        + '<div class="post-body">' + renderBody(p.body, true) + '</div>'
         + '<div class="post-actions"><button type="button" class="btn light like-btn" id="likeBtn" aria-pressed="' + p.liked + '">추천 <b class="num" id="likeN">' + p.likes + '</b></button>'
         + '<a class="btn light" href="' + url("board.html") + '">목록</a>'
         + (B.canDelete(p) ? '<button type="button" class="btn light" id="delBtn">삭제</button>' : "") + '</div>';
@@ -160,6 +210,7 @@
         if(!B.user()) return loginModal();
         B.toggleLike(id).then(r => { $("likeBtn").setAttribute("aria-pressed", r.liked); $("likeN").textContent = r.likes; }).catch(e => toast(e.message));
       });
+      fillPreviews($("post"));
       const del = $("delBtn");
       if(del) del.addEventListener("click", () => modal('<h3>글을 삭제할까요?</h3><p>삭제하면 되돌릴 수 없어요.</p><button type="button" class="btn cherry" id="yes">삭제</button><button type="button" class="btn light" data-close>취소</button>',
         el => el.querySelector("#yes").addEventListener("click", () => B.remove(id).then(() => { location.href = url("board.html"); }).catch(e => toast(e.message)))));
@@ -170,7 +221,7 @@
         const list = await B.comments(id);
         $("commentCount").textContent = list.length;
         $("comments").innerHTML = list.length ? list.map(c => '<div class="comment"><div class="c-top"><b>' + esc(c.author) + '</b>' + badge(c.authorRole) + '<span class="num">' + when(c.createdAt) + '</span>'
-          + (B.canDelete(c) ? '<button type="button" class="text-btn" data-del="' + c.id + '">삭제</button>' : "") + '</div><p>' + esc(c.body) + '</p></div>').join("")
+          + (B.canDelete(c) ? '<button type="button" class="text-btn" data-del="' + c.id + '">삭제</button>' : "") + '</div><p>' + renderBody(c.body, false) + '</p></div>').join("")
           : '<p class="empty">첫 댓글을 남겨 보세요</p>';
       }catch(e){ $("comments").innerHTML = '<p class="empty">댓글을 불러오지 못했어요</p>'; }
       const u = B.user();
@@ -198,6 +249,61 @@
       $("cat").innerHTML = allowed.map(b => '<option value="' + esc(b.id) + '"' + (b.id === want ? " selected" : "") + '>' + esc(b.label) + '</option>').join("");
     }
     $("loginHere").addEventListener("click", loginModal);
+    /* 사진 넣기: 긴 변 1600px, webp 로 줄여서 올림 (움직이는 gif 는 그대로) */
+    const ta = $("body"), MAX_IMG = 10;
+    const countImgs = () => (ta.value.match(/^!\[[^\]]*\]\([^)\s]+\)$/gm) || []).length;
+    async function shrink(file){
+      if(file.type === "image/gif" && file.size <= 3 * 1024 * 1024) return file;
+      const bmp = await createImageBitmap(file);
+      const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+      const c = document.createElement("canvas"); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+      c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+      const blob = await new Promise(r => c.toBlob(r, "image/webp", .85));
+      if(!blob || blob.type !== "image/webp") return new Promise(r => c.toBlob(r, "image/jpeg", .85));
+      return blob;
+    }
+    function insertAtCursor(text){
+      const s = ta.selectionStart, e = ta.selectionEnd, v = ta.value;
+      const before = v.slice(0, s), after = v.slice(e);
+      const pre = before && !before.endsWith("\n") ? "\n" : "", post = after.startsWith("\n") ? "" : "\n";
+      ta.value = before + pre + text + post + after;
+      const pos = (before + pre + text + post).length; ta.setSelectionRange(pos, pos); ta.focus();
+      strip();
+    }
+    async function addImages(files){
+      files = Array.from(files || []).filter(f => /^image\//.test(f.type));
+      if(!files.length) return;
+      if(countImgs() + files.length > MAX_IMG) return toast("사진은 한 글에 " + MAX_IMG + "장까지 넣을 수 있어요");
+      const btn = $("imgBtn"); btn.disabled = true; $("submitBtn").disabled = true;
+      try{
+        for(let i = 0; i < files.length; i++){
+          btn.textContent = "올리는 중… " + (i + 1) + "/" + files.length;
+          const blob = await shrink(files[i]);
+          if(blob.size > 3 * 1024 * 1024){ toast("사진이 너무 커요 (3MB까지)"); continue; }
+          insertAtCursor("![사진](" + await B.uploadImage(blob) + ")");
+        }
+      }catch(err){ toast(err.message || "사진을 올리지 못했어요"); }
+      btn.disabled = false; btn.textContent = "📷 사진 넣기"; $("submitBtn").disabled = false;
+    }
+    function strip(){
+      const srcs = (ta.value.match(/^!\[[^\]]*\]\(([^)\s]+)\)$/gm) || []).map(l => l.match(IMG_LINE)[1]).filter(B.isOwnImage);
+      $("imgStrip").innerHTML = srcs.map((s, i) => '<span class="img-thumb"><img src="' + esc(s) + '" alt=""><button type="button" data-rm="' + i + '" aria-label="사진 빼기">×</button></span>').join("");
+    }
+    $("imgStrip").addEventListener("click", e => {
+      const b = e.target.closest("[data-rm]"); if(!b) return;
+      let n = -1, k = Number(b.dataset.rm);
+      ta.value = ta.value.split("\n").filter(l => { const m = l.trim().match(IMG_LINE); if(m && B.isOwnImage(m[1])){ n++; return n !== k; } return true; }).join("\n");
+      strip();
+    });
+    $("imgBtn").addEventListener("click", () => $("imgInput").click());
+    $("imgInput").addEventListener("change", e => { addImages(e.target.files); e.target.value = ""; });
+    ta.addEventListener("paste", e => {
+      const files = Array.from((e.clipboardData && e.clipboardData.files) || []);
+      if(files.some(f => /^image\//.test(f.type))){ e.preventDefault(); addImages(files); }
+    });
+    ta.addEventListener("dragover", e => { if(e.dataTransfer && Array.from(e.dataTransfer.types).includes("Files")) e.preventDefault(); });
+    ta.addEventListener("drop", e => { if(e.dataTransfer && e.dataTransfer.files.length){ e.preventDefault(); addImages(e.dataTransfer.files); } });
+    ta.addEventListener("input", strip);
     $("writeForm").addEventListener("submit", e => {
       e.preventDefault();
       const btn = $("submitBtn"); btn.disabled = true;

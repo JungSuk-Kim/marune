@@ -60,6 +60,8 @@
         p.views++; save();
         return Object.assign(view(p), { body: p.body, liked: !!me && db.likes.some(l => l.postId === id && l.uid === me.id) });
       },
+      /* 체험 모드: 사진을 이 기기 안에만 담아 둠 */
+      uploadImage: blob => new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => no(new Error("사진을 읽지 못했어요")); r.readAsDataURL(blob); }),
       create: async ({ category, title, body }) => {
         const p = { id: db.seq++, category, title, body, author: me.nickname, role: me.role, uid: me.id, createdAt: Date.now(), views: 0, likes: 0 };
         db.posts.push(p); save(); return p.id;
@@ -131,6 +133,12 @@
         if(me){ const l = await sb.from("post_likes").select("post_id").eq("post_id", id).eq("user_id", me.id).maybeSingle(); liked = !!l.data; }
         return Object.assign(row(r.data), { body: r.data.body, liked });
       },
+      uploadImage: async blob => {
+        const ext = (blob.type.split("/")[1] || "webp").replace("jpeg", "jpg");
+        const path = me.id + "/" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8) + "." + ext;
+        check(await sb.storage.from("post-images").upload(path, blob, { contentType: blob.type, cacheControl: "31536000", upsert: false }));
+        return sb.storage.from("post-images").getPublicUrl(path).data.publicUrl;
+      },
       create: async ({ category, title, body }) => {
         const r = check(await sb.from("posts").insert({ category, title, body, author_id: me.id }).select("id").single());
         return r.data.id;
@@ -188,6 +196,9 @@
       if(!api.canWrite(o.category)) return Promise.reject(new Error("이 게시판에는 글을 쓸 수 없어요"));
       return be.create({ category: o.category, title, body });
     },
+    uploadImage: blob => be.user() ? be.uploadImage(blob) : Promise.reject(new Error("로그인한 뒤 사진을 올릴 수 있어요")),
+    /* 글 안에서 사진으로 보여줄 주소: 이 사이트 저장소(또는 체험 모드의 기기 안 사진)만 */
+    isOwnImage: src => /^data:image\//.test(src) || (!!S.supabaseUrl && src.indexOf(S.supabaseUrl.replace(/\/$/, "") + "/storage/v1/object/public/post-images/") === 0),
     remove: id => be.remove(Number(id)),
     comments: id => be.comments(Number(id)),
     addComment: (id, body) => {
