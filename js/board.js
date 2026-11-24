@@ -239,6 +239,7 @@
 
   /* ───────── 글쓰기 ───────── */
   function initWrite(){
+    let toBody = () => $("body").value;
     function render(){
       const u = B.user();
       const allowed = B.boards.filter(b => B.canWrite(b.id));
@@ -249,9 +250,11 @@
       $("cat").innerHTML = allowed.map(b => '<option value="' + esc(b.id) + '"' + (b.id === want ? " selected" : "") + '>' + esc(b.label) + '</option>').join("");
     }
     $("loginHere").addEventListener("click", loginModal);
-    /* 사진 넣기: 긴 변 1600px, webp 로 줄여서 올림 (움직이는 gif 는 그대로) */
-    const ta = $("body"), MAX_IMG = 10;
-    const countImgs = () => (ta.value.match(/^!\[[^\]]*\]\([^)\s]+\)$/gm) || []).length;
+    /* 사진 넣기: 긴 변 1600px, webp 로 줄여서 올림 (움직이는 gif 는 그대로).
+       글쓰기 칸에는 [사진1] 처럼 짧게만 보이고, 등록할 때 실제 사진 주소로 바뀜 */
+    const ta = $("body"), MAX_IMG = 10, imgs = [];
+    const TOKEN = /^\[사진(\d+)\]$/;
+    const tokensIn = () => ta.value.split("\n").map(l => (l.trim().match(TOKEN) || [])[1]).filter(n => n && imgs[n - 1]).map(Number);
     async function shrink(file){
       if(file.type === "image/gif" && file.size <= 3 * 1024 * 1024) return file;
       const bmp = await createImageBitmap(file);
@@ -273,28 +276,30 @@
     async function addImages(files){
       files = Array.from(files || []).filter(f => /^image\//.test(f.type));
       if(!files.length) return;
-      if(countImgs() + files.length > MAX_IMG) return toast("사진은 한 글에 " + MAX_IMG + "장까지 넣을 수 있어요");
+      if(tokensIn().length + files.length > MAX_IMG) return toast("사진은 한 글에 " + MAX_IMG + "장까지 넣을 수 있어요");
       const btn = $("imgBtn"); btn.disabled = true; $("submitBtn").disabled = true;
       try{
         for(let i = 0; i < files.length; i++){
           btn.textContent = "올리는 중… " + (i + 1) + "/" + files.length;
           const blob = await shrink(files[i]);
           if(blob.size > 3 * 1024 * 1024){ toast("사진이 너무 커요 (3MB까지)"); continue; }
-          insertAtCursor("![사진](" + await B.uploadImage(blob) + ")");
+          imgs.push(await B.uploadImage(blob));
+          insertAtCursor("[사진" + imgs.length + "]");
         }
       }catch(err){ toast(err.message || "사진을 올리지 못했어요"); }
       btn.disabled = false; btn.textContent = "📷 사진 넣기"; $("submitBtn").disabled = false;
     }
     function strip(){
-      const srcs = (ta.value.match(/^!\[[^\]]*\]\(([^)\s]+)\)$/gm) || []).map(l => l.match(IMG_LINE)[1]).filter(B.isOwnImage);
-      $("imgStrip").innerHTML = srcs.map((s, i) => '<span class="img-thumb"><img src="' + esc(s) + '" alt=""><button type="button" data-rm="' + i + '" aria-label="사진 빼기">×</button></span>').join("");
+      $("imgStrip").innerHTML = tokensIn().map(n => '<span class="img-thumb"><img src="' + esc(imgs[n - 1]) + '" alt=""><em>사진' + n + '</em><button type="button" data-rm="' + n + '" aria-label="사진' + n + ' 빼기">×</button></span>').join("");
     }
     $("imgStrip").addEventListener("click", e => {
       const b = e.target.closest("[data-rm]"); if(!b) return;
-      let n = -1, k = Number(b.dataset.rm);
-      ta.value = ta.value.split("\n").filter(l => { const m = l.trim().match(IMG_LINE); if(m && B.isOwnImage(m[1])){ n++; return n !== k; } return true; }).join("\n");
+      const n = b.dataset.rm;
+      ta.value = ta.value.split("\n").filter(l => l.trim() !== "[사진" + n + "]").join("\n");
       strip();
     });
+    /* 등록할 때 [사진N] → 실제 사진 */
+    toBody = () => ta.value.split("\n").map(l => { const m = l.trim().match(TOKEN); return m && imgs[m[1] - 1] ? "![사진](" + imgs[m[1] - 1] + ")" : l; }).join("\n");
     $("imgBtn").addEventListener("click", () => $("imgInput").click());
     $("imgInput").addEventListener("change", e => { addImages(e.target.files); e.target.value = ""; });
     ta.addEventListener("paste", e => {
@@ -307,7 +312,7 @@
     $("writeForm").addEventListener("submit", e => {
       e.preventDefault();
       const btn = $("submitBtn"); btn.disabled = true;
-      B.create({ category: $("cat").value, title: $("title").value, body: $("body").value })
+      B.create({ category: $("cat").value, title: $("title").value, body: toBody() })
         .then(id => { location.href = url("post.html?id=" + id); })
         .catch(err => { toast(err.message); btn.disabled = false; });
     });
