@@ -13,3 +13,8 @@ create policy "post images: upload to own folder" on storage.objects for insert 
 drop policy if exists "post images: delete own or admin" on storage.objects;
 create policy "post images: delete own or admin" on storage.objects for delete to authenticated
   using (bucket_id = 'post-images' and ((storage.foldername(name))[1] = (select auth.uid())::text or public.my_role() = 'admin'));
+
+-- 올린 사람(또는 운영자)이 자기 사진을 찾아 지울 수 있도록 (사진 보기는 공개 주소로 누구나)
+drop policy if exists "post images: see own or admin" on storage.objects;
+create policy "post images: see own or admin" on storage.objects for select to authenticated
+  using (bucket_id = 'post-images' and ((storage.foldername(name))[1] = (select auth.uid())::text or public.my_role() = 'admin'));
