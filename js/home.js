@@ -37,6 +37,18 @@
     $("viewers").hidden = !d.live || !d.viewers;
     $("viewers").textContent = Number(d.viewers || 0).toLocaleString() + "명";
     watch.firstChild.textContent = d.live ? "방송 보러가기" : "방송국 가기";
+    if(d.live && d.watchUrl) watch.href = d.watchUrl;
+    /* 라이브 썸네일: 1분마다 새 화면으로 */
+    const lt = $("liveThumb"), show = !!(d.live && d.thumb);
+    if(show){
+      const img = $("liveImg"), src = d.thumb + "?" + Date.now();
+      const pre = new Image();
+      pre.onload = () => { img.src = src; lt.hidden = false; $("hero").classList.add("has-thumb"); };
+      pre.onerror = () => { lt.hidden = true; $("hero").classList.remove("has-thumb"); };
+      pre.src = src;
+      lt.href = d.watchUrl || S.channelUrl || "#";
+      $("liveImgViewers").textContent = d.viewers ? "👀 " + Number(d.viewers).toLocaleString() : "";
+    } else { lt.hidden = true; $("hero").classList.remove("has-thumb"); }
   }
   renderLive(null);
   const getJSON = p => fetch(url(p), { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null);

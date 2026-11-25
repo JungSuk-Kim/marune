@@ -27,6 +27,11 @@
 <main>
 <div class="hero" id="hero">
     <div class="hero-art" id="heroArt" role="img" aria-label="대표 사진"></div>
+    <a class="live-thumb" id="liveThumb" href="#" target="_blank" rel="noopener" hidden aria-label="지금 방송 화면 보러가기">
+      <img id="liveImg" alt="지금 방송 화면" decoding="async">
+      <span class="lt-badge"><i></i>LIVE</span><span class="lt-view num" id="liveImgViewers"></span>
+      <span class="lt-play" aria-hidden="true">▶</span>
+    </a>
     <div class="wrap">
       <span class="live-pill" id="livePill"><span class="dot idle" id="liveDot"></span><span id="liveTitle"></span><span class="num" id="viewers" hidden></span></span>
       <span id="liveSub" hidden></span>

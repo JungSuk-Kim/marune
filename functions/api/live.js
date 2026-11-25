@@ -26,7 +26,11 @@ export async function onRequestGet({ env }){
         ok: true,
         live: !!b,
         title: b ? String(b.broad_title || "") : "",
-        viewers: b ? Number(b.current_sum_viewer || 0) : 0
+        viewers: b ? Number(b.current_sum_viewer || 0) : 0,
+        /* 라이브 썸네일: 비밀번호·연령제한 방송은 보여주지 않음 */
+        thumb: b && b.broad_no && !Number(b.is_password) && b.is_password !== true && Number(b.broad_grade || 0) < 19
+          ? "https://liveimg.sooplive.com/m/" + Number(b.broad_no) : "",
+        watchUrl: b && b.broad_no ? "https://play.sooplive.com/" + id + "/" + Number(b.broad_no) : ""
       }, 45);
     }catch(e){ /* 다음 주소 시도 */ }
   }
