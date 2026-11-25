@@ -842,3 +842,6 @@ a.post-row.soop-row:hover{background:#eaf7ef}
   .hero.has-thumb .hero-art{display:none}
   .lt-play{opacity:1;width:48px;height:48px;font-size:18px}
 }
+.hero.has-thumb .live-pill{max-width:calc(100% - min(44%,460px) - 40px);overflow:hidden}
+.hero.has-thumb #liveTitle{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+@media (max-width:760px){ .hero.has-thumb .live-pill{max-width:100%} }
